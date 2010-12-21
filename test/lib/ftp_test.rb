@@ -3,7 +3,7 @@
 require 'date'
 require 'time'
 require 'test/unit'
-require 'rake/contrib/ftptools'
+require 'rrake/contrib/ftptools'
 
 class FakeDate
   def self.today

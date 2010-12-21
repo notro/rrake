@@ -1,6 +1,6 @@
 # -*- ruby -*-
 
-require 'rake/loaders/makefile'
+require 'rrake/loaders/makefile'
 
 task :default
 

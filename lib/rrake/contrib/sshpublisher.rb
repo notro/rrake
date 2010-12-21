@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'rake/contrib/compositepublisher'
+require 'rrake/contrib/compositepublisher'
 
 module Rake
 

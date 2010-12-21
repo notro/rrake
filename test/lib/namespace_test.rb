@@ -8,7 +8,7 @@ end
 
 require 'test/unit'
 require 'flexmock/test_unit'
-require 'rake'
+require 'rrake'
 require 'test/rake_test_setup'
 
 class TestNameSpace < Test::Unit::TestCase

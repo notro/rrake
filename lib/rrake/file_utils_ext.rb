@@ -1,4 +1,4 @@
-require 'rake/file_utils'
+require 'rrake/file_utils'
 
 module Rake
   # ###########################################################################

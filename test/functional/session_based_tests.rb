@@ -9,7 +9,7 @@ require 'fileutils'
 require 'session'
 require 'test/in_environment'
 require 'test/rake_test_setup'
-require 'rake'
+require 'rrake'
 
 # Version 2.1.9 of session has a bug where the @debug instance
 # variable is not initialized, causing warning messages.  This snippet
@@ -31,7 +31,7 @@ class SessionBasedTests < Test::Unit::TestCase
   RUBY_COMMAND = 'ruby'
 
   def setup
-    @rake_path = File.expand_path("bin/rake")
+    @rake_path = File.expand_path("bin/rrake")
     lib_path = File.expand_path("lib")
     @ruby_options = ["-I#{lib_path}", "-I."]
     @verbose = ! ENV['VERBOSE'].nil?
@@ -52,7 +52,7 @@ class SessionBasedTests < Test::Unit::TestCase
 
   def test_rake_error_on_bad_task
     Dir.chdir("test/data/default") do rake "xyz" end
-    assert_match(/rake aborted/, @err)
+    assert_match(/rrake aborted/, @err)
     assert_status(1)
   end
 
@@ -75,20 +75,20 @@ class SessionBasedTests < Test::Unit::TestCase
       ) do
       rake "-T"
     end
-    assert_match %r{^rake a *# A / A2 *$}, @out
-    assert_match %r{^rake b *# B *$}, @out
-    assert_no_match %r{^rake c}, @out
-    assert_match %r{^rake d *# x{65}\.\.\.$}, @out
+    assert_match %r{^rrake a *# A / A2 *$}, @out
+    assert_match %r{^rrake b *# B *$}, @out
+    assert_no_match %r{^rrake c}, @out
+    assert_match %r{^rrake d *# x{64}\.\.\.$}, @out
   end
   
   def test_long_description
     in_environment("PWD" => "test/data/multidesc") do
       rake "--describe"
     end
-    assert_match %r{^rake a\n *A / A2 *$}m, @out
-    assert_match %r{^rake b\n *B *$}m, @out
-    assert_match %r{^rake d\n *x{80}}m, @out
-    assert_no_match %r{^rake c\n}m, @out
+    assert_match %r{^rrake a\n *A / A2 *$}m, @out
+    assert_match %r{^rrake b\n *B *$}m, @out
+    assert_match %r{^rrake d\n *x{80}}m, @out
+    assert_no_match %r{^rrake c\n}m, @out
   end
 
   def test_rbext
@@ -393,7 +393,7 @@ class SessionBasedTests < Test::Unit::TestCase
   end
   
   def test_file_list_is_requirable_separately
-    ruby "-rrake/file_list", "-e 'puts Rake::FileList[\"a\"].size'"
+    ruby "-rrrake/file_list", "-e 'puts Rake::FileList[\"a\"].size'"
     assert_equal "1\n", @out
     assert_equal 0, @status
   end

@@ -3,8 +3,8 @@
 # Define a package task libarary to aid in the definition of
 # redistributable package files.
 
-require 'rake'
-require 'rake/tasklib'
+require 'rrake'
+require 'rrake/tasklib'
 
 module Rake
 

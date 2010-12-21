@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
 require 'test/unit'
-require 'rake'
-require 'rake/loaders/makefile'
+require 'rrake'
+require 'rrake/loaders/makefile'
 
 class TestMakefileLoader < Test::Unit::TestCase
   include Rake

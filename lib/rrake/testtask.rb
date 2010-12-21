@@ -2,8 +2,8 @@
 
 # Define a task library for running unit tests.
 
-require 'rake'
-require 'rake/tasklib'
+require 'rrake'
+require 'rrake/tasklib'
 
 module Rake
 
@@ -172,7 +172,7 @@ module Rake
     end
     
     def rake_lib_dir # :nodoc:
-      find_dir('rake') or
+      find_dir('rrake') or
         fail "unable to find rake lib"
     end
 

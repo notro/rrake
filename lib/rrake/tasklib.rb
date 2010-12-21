@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'rake'
+require 'rrake'
 
 module Rake
 

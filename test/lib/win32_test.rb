@@ -4,7 +4,7 @@ require 'test/unit'
 require 'test/rake_test_setup'
 require 'test/in_environment'
 
-require 'rake'
+require 'rrake'
 
 class TestWin32 < Test::Unit::TestCase
   include InEnvironment

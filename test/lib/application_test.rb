@@ -7,7 +7,7 @@ rescue LoadError
 end
 
 require 'test/unit'
-require 'rake'
+require 'rrake'
 require 'test/rake_test_setup'
 require 'test/capture_stdout'
 require 'test/in_environment'
@@ -45,7 +45,7 @@ class TestApplication < Test::Unit::TestCase
     @app.last_description = "COMMENT"
     @app.define_task(Rake::Task, "t")
     out = capture_stdout do @app.instance_eval { display_tasks_and_comments } end
-    assert_match(/^rake t/, out)
+    assert_match(/^rrake t/, out)
     assert_match(/# COMMENT/, out)
   end
 
@@ -56,8 +56,8 @@ class TestApplication < Test::Unit::TestCase
       @app.last_description = "1234567890" * 8
       @app.define_task(Rake::Task, "t")
       out = capture_stdout do @app.instance_eval { display_tasks_and_comments } end
-      assert_match(/^rake t/, out)
-      assert_match(/# 12345678901234567890123456789012345678901234567890123456789012345\.\.\./, out)
+      assert_match(/^rrake t/, out)
+      assert_match(/# 1234567890123456789012345678901234567890123456789012345678901234\.\.\./, out)
     end
   end
 
@@ -95,7 +95,7 @@ class TestApplication < Test::Unit::TestCase
     @app.last_description = "1234567890" * 8
     @app.define_task(Rake::Task, "t")
     out = capture_stdout do @app.instance_eval { display_tasks_and_comments } end
-    assert_match(/^rake t/, out)
+    assert_match(/^rrake t/, out)
     assert_match(/# #{@app.last_description}/, out)
   end
 
@@ -107,8 +107,8 @@ class TestApplication < Test::Unit::TestCase
       @app.last_description = "1234567890" * 8
       @app.define_task(Rake::Task, "t")
       out = capture_stdout do @app.instance_eval { display_tasks_and_comments } end
-      assert_match(/^rake t/, out)
-      assert_match(/# 12345678901234567890123456789012345678901234567890123456789012345\.\.\./, out)
+      assert_match(/^rrake t/, out)
+      assert_match(/# 1234567890123456789012345678901234567890123456789012345678901234\.\.\./, out)
     end
   end
 
@@ -118,7 +118,7 @@ class TestApplication < Test::Unit::TestCase
     @app.last_description = "COMMENT"
     @app.define_task(Rake::Task, "t")
     out = capture_stdout do @app.instance_eval { display_tasks_and_comments } end
-    assert_match(/^rake t$/, out)
+    assert_match(/^rrake t$/, out)
     assert_match(/^ {4}COMMENT$/, out)
   end
 
@@ -129,7 +129,7 @@ class TestApplication < Test::Unit::TestCase
     @app.define_task(Rake::Task, "t")
     @app['t'].locations << "HERE:1"
     out = capture_stdout do @app.instance_eval { display_tasks_and_comments } end
-    assert_match(/^rake t +[^:]+:\d+ *$/, out)
+    assert_match(/^rrake t +[^:]+:\d+ *$/, out)
   end
 
   def test_finding_rakefile
@@ -425,7 +425,7 @@ class TestApplicationOptions < Test::Unit::TestCase
   def test_help
     in_environment do
       flags('--help', '-H', '-h') do |opts|
-        assert_match(/\Arake/, @out)
+        assert_match(/\Arrake/, @out)
         assert_match(/\boptions\b/, @out)
         assert_match(/\btargets\b/, @out)
         assert_equal :exit, @exit

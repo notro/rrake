@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'rake'
+require 'rrake'
 require 'test/unit'
 require 'test/filecreation'
 require 'fileutils'

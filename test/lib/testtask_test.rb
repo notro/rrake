@@ -1,5 +1,5 @@
 require 'test/test_helper'
-require 'rake/testtask'
+require 'rrake/testtask'
 
 class TestTaskTest < Test::Unit::TestCase
   def test_direct_run_has_quoted_paths

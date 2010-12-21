@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'test/unit'
-require 'rake'
+require 'rrake'
 require 'test/rake_test_setup'
 
 class TaskManager

@@ -2,7 +2,7 @@
 
 require 'test/unit'
 require 'test/filecreation'
-require 'rake/contrib/sys'
+require 'rrake/contrib/sys'
 
 class TestSys < Test::Unit::TestCase
   include FileCreation

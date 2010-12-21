@@ -2,7 +2,7 @@
 
 require 'test/unit'
 require 'thread'
-require 'rake'
+require 'rrake'
 
 ######################################################################
 class TestMultiTask < Test::Unit::TestCase

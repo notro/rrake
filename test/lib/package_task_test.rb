@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'test/unit'
-require 'rake/packagetask'
+require 'rrake/packagetask'
 require 'test/rake_test_setup'
 
 class TestPackageTask < Test::Unit::TestCase
@@ -28,7 +28,7 @@ class TestPackageTask < Test::Unit::TestCase
       p.need_zip = true
     }
     assert_equal "pkg", pkg.package_dir
-    assert pkg.package_files.include?("bin/rake")
+    assert pkg.package_files.include?("bin/rrake")
     assert "pkgr", pkg.name
     assert "1.2.3", pkg.version
     assert Task[:package]
@@ -65,7 +65,7 @@ end
 
 begin
   require 'rubygems'
-  require 'rake/gempackagetask'
+  require 'rrake/gempackagetask'
 rescue Exception
   puts "WARNING: RubyGems not installed"
 end

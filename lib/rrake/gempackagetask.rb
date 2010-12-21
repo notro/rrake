@@ -4,8 +4,8 @@
 # packages.
 
 require 'rubygems'
-require 'rake'
-require 'rake/packagetask'
+require 'rrake'
+require 'rrake/packagetask'
 require 'rubygems/user_interaction'
 require 'rubygems/builder'
 

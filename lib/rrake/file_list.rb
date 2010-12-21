@@ -1,5 +1,5 @@
-require 'rake/cloneable'
-require 'rake/file_utils_ext'
+require 'rrake/cloneable'
+require 'rrake/file_utils_ext'
 
 ######################################################################
 module Rake

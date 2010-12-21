@@ -2,7 +2,7 @@
 
 require 'test/unit'
 require 'test/rake_test_setup'
-require 'rake'
+require 'rrake'
 
 # ====================================================================
 class TestPathMap < Test::Unit::TestCase

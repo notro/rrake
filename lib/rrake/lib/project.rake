@@ -10,8 +10,8 @@ file "Rakefile" do
   File.open("Rakefile", "w") do |out|
     out.puts %{# -*- ruby -*-
 
-require 'rake/clean'
-require 'rake/testtask'
+require 'rrake/clean'
+require 'rrake/testtask'
 
 task :default => :test
 

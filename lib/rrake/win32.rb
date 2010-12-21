@@ -1,6 +1,6 @@
 
 module Rake
-  require 'rake/alt_system'
+  require 'rrake/alt_system'
 
   # Win 32 interface methods for Rake. Windows specific functionality
   # will be placed here to collect that knowledge in one spot.

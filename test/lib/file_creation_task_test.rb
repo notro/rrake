@@ -2,7 +2,7 @@
 
 require 'test/unit'
 require 'fileutils'
-require 'rake'
+require 'rrake'
 require 'test/filecreation'
 
 ######################################################################

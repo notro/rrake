@@ -1,4 +1,4 @@
-require 'rake/application'
+require 'rrake/application'
 
 module Rake
 

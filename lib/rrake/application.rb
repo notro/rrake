@@ -1,8 +1,8 @@
 require 'shellwords'
 require 'optparse'
 
-require 'rake/task_manager'
-require 'rake/win32'
+require 'rrake/task_manager'
+require 'rrake/win32'
 
 module Rake
   
@@ -30,7 +30,7 @@ module Rake
     # Initialize a Rake::Application object.
     def initialize
       super
-      @name = 'rake'
+      @name = 'rrake'
       @rakefiles = DEFAULT_RAKEFILES.dup
       @rakefile = nil
       @pending_imports = []
@@ -64,7 +64,7 @@ module Rake
     end
 
     # Initialize the command line parameters and app name.
-    def init(app_name='rake')
+    def init(app_name='rrake')
       standard_exception_handling do
         @name = app_name
         handle_options
@@ -275,7 +275,7 @@ module Rake
       [
         ['--classic-namespace', '-C', "Put Task and FileTask in the top level namespace",
           lambda { |value|
-            require 'rake/classic_namespace'
+            require 'rrake/classic_namespace'
             options.classic_namespace = true
           }
         ],
@@ -391,7 +391,7 @@ module Rake
         ],
         ['--version', '-V', "Display the program version.",
           lambda { |value|
-            puts "rake, version #{RAKEVERSION}"
+            puts "rrake, version #{RAKEVERSION}"
             exit
           }
         ],
@@ -411,7 +411,7 @@ module Rake
       options.top_level_dsl = true
 
       OptionParser.new do |opts|
-        opts.banner = "rake [-f rakefile] {options} targets..."
+        opts.banner = "rrake [-f rakefile] {options} targets..."
         opts.separator ""
         opts.separator "Options are ..."
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'test/test_helper'
-require 'rake/environment'
+require 'rrake/environment'
 
 class TestEnvironment < Test::Unit::TestCase
   def test_load_string

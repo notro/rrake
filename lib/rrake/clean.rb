@@ -13,7 +13,7 @@
 #            The intent of this task is to return a project to its
 #            pristine, just unpacked state.
 
-require 'rake'
+require 'rrake'
 
 Rake::DSL.environment do
   CLEAN = Rake::FileList["**/*~", "**/*.bak", "**/core"]

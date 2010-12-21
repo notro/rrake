@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'test/unit'
-require 'rake/rdoctask'
+require 'rrake/rdoctask'
 require 'test/rake_test_setup'
 
 class TestRDocTask < Test::Unit::TestCase

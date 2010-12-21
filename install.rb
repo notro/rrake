@@ -9,7 +9,7 @@ $ruby = CONFIG['ruby_install_name']
 ##
 # Install a binary file. We patch in on the way through to
 # insert a #! line. If this is a Unix install, we name
-# the command (for example) 'rake' and let the shebang line
+# the command (for example) 'rrake' and let the shebang line
 # handle running it. Under windows, we add a '.rb' extension
 # and let file associations to their stuff
 #
@@ -67,7 +67,7 @@ if (destdir = ENV['DESTDIR'])
   FileUtils.mkdir_p($sitedir)
 end
 
-rake_dest = File.join($sitedir, "rake")
+rake_dest = File.join($sitedir, "rrake")
 FileUtils.mkdir_p(rake_dest, {:verbose => true})
 File.chmod(0755, rake_dest)
 
@@ -87,4 +87,4 @@ end
 
 # and the executable
 
-installBIN("bin/rake", "rake")
+installBIN("bin/rrake", "rrake")

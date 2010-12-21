@@ -8,7 +8,7 @@ end
 
 require 'test/unit'
 require 'flexmock/test_unit'
-require 'rake'
+require 'rrake'
 require 'test/rake_test_setup'
 
 class DslTest < Test::Unit::TestCase
@@ -46,7 +46,7 @@ class DslTest < Test::Unit::TestCase
 
   def test_dsl_toplevel_when_require_rake_dsl
     assert_nothing_raised {
-      ruby '-I./lib', '-rrake/dsl', '-e', 'task(:x) { }', :verbose => false
+      ruby '-I./lib', '-rrrake/dsl', '-e', 'task(:x) { }', :verbose => false
     }
   end
 end

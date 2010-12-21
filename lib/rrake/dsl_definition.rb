@@ -1,5 +1,5 @@
 # Rake DSL functions.
-require 'rake/file_utils_ext'
+require 'rrake/file_utils_ext'
 
 module Rake
   module DSL

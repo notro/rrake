@@ -1,4 +1,4 @@
-require 'rake/dsl_definition'
+require 'rrake/dsl_definition'
 
 module Rake
 

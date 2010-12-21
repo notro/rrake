@@ -1,19 +1,14 @@
-name: rake
-document: http://rake.rubyforge.org
-download: http://rubyforge.org/project/showfiles.php?group_id=50
+name: rrake
+document: http://rrake.rubyforge.org
+download: http://rubyforge.org/project/
 description: >
-    <p>This package contains Rake, a simple ruby build program with
-    capabilities similar to make.</p>
+    <p>This package contains Remote Rake, extending rake to allow tasks to run on other machines.</p>
 
-    <p> Rake has the following features: </p>
+    <p> Remote Rake has the following features: </p>
 
     <ul>
-      <li>Rakefiles (rake&#8217;s version of Makefiles) are completely
-      defined in standard Ruby syntax. No XML files to edit. No quirky
-      Makefile syntax to worry about (is that a tab or a space?)</li>
-      <li>Users can specify tasks with prerequisites.</li>
-      <li>Rake supports rule patterns to sythesize implicit tasks.</li>
-      <li>Rake is lightweight. It can be distributed with other
-      projects as a single file. Projects that depend upon rake do not
-      require that rake be installed on target systems.</li>
+      <li>Same syntax as ordinary Rakefiles.</li>
+      <li>The remote keyword defines where to run the task.</li>
+      <li>Conditions cause a task's execution to depend upon the prerequisites execution status.</li>
+      <li>The decision to execute a task can be overrided with a proc.</li>
     </ul>

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
-require 'rake'
-require 'rake/tasklib'
+require 'rrake'
+require 'rrake/tasklib'
 
 module Rake
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require 'test/unit'
-require 'rake/testtask'
+require 'rrake/testtask'
 
 class TestTestTask < Test::Unit::TestCase
   include Rake

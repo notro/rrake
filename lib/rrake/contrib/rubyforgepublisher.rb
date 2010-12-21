@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-require 'rake/contrib/sshpublisher'
+require 'rrake/contrib/sshpublisher'
 
 module Rake
 

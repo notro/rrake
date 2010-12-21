@@ -1,4 +1,4 @@
-# Rakefile for rake        -*- ruby -*-
+# Rakefile for rrake        -*- ruby -*-
 
 # Copyright 2003, 2004, 2005 by Jim Weirich (jim@weirichhouse.org)
 # All rights reserved.
@@ -8,13 +8,13 @@
 
 begin
   require 'rubygems'
-  require 'rake/gempackagetask'
+  require 'rrake/gempackagetask'
 rescue Exception
   nil
 end
-require 'rake/clean'
-require 'rake/testtask'
-require 'rake/rdoctask'
+require 'rrake/clean'
+require 'rrake/testtask'
+require 'rrake/rdoctask'
 
 CLEAN.include('**/*.o', '*.dot', '**/*.rbc')
 CLOBBER.include('doc/example/main', 'testdata')
@@ -34,7 +34,7 @@ end
 
 # Determine the current version of the software
 
-if `ruby -Ilib ./bin/rake --version` =~ /rake, version ([0-9.]+)$/
+if `ruby -Ilib ./bin/rrake --version` =~ /rrake, version ([0-9.]+)$/
   CURRENT_VERSION = $1
 else
   CURRENT_VERSION = "0.0.0"
@@ -44,7 +44,7 @@ $package_version = CURRENT_VERSION
 
 SRC_RB = FileList['lib/**/*.rb']
 
-# The default task is run if rake is given no explicit arguments.
+# The default task is run if rrake is given no explicit arguments.
 
 desc "Default Task"
 task :default => "test:all"
@@ -94,14 +94,31 @@ namespace :test do
 end
 
 begin
+  # Make sure rcov uses rrake
+  module ::Kernel
+    alias :rrake_orig_require :require
+    def require(file)
+      #puts "rcov require(#{file})"
+      if file =~ /^rake/
+        file.gsub! /^rake/, 'rrake'
+        #puts "=>  switched to #{file}"
+      end
+      rrake_orig_require(file)
+    end 
+  end
+  
   require 'rcov/rcovtask'
+  
+  module ::Kernel
+    alias :require :rrake_orig_require
+  end
 
   Rcov::RcovTask.new do |t|
     t.libs << "test"
     dot_rakes = 
     t.rcov_opts = [
       '-xRakefile', '-xrakefile', '-xpublish.rf',
-      '-xlib/rake/contrib', '-x/Library', 
+      '-xlib/rrake/contrib', '-x/Library', 
       '--text-report',
       '--sort coverage'
     ] + FileList['rakelib/*.rake'].pathmap("-x%p")
@@ -124,7 +141,7 @@ end
 
 # CVS Tasks ----------------------------------------------------------
 
-# Install rake using the standard install.rb script.
+# Install rrake using the standard install.rb script.
 
 desc "Install the application"
 task :install do
@@ -143,13 +160,13 @@ end
 BASE_RDOC_OPTIONS = [
   '--line-numbers', '--inline-source',
   '--main' , 'README.rdoc',
-  '--title', 'Rake -- Ruby Make'
+  '--title', 'Remote Rake'
 ]
 
 rd = Rake::RDocTask.new("rdoc") do |rdoc|
   rdoc.rdoc_dir = 'html'
   rdoc.template = 'doc/jamis.rb'
-  rdoc.title    = "Rake -- Ruby Make"
+  rdoc.title    = "Remote Rake"
   rdoc.options = BASE_RDOC_OPTIONS.dup
   rdoc.options << '-SHN' << '-f' << 'darkfish' if DARKFISH_ENABLED
     
@@ -159,7 +176,7 @@ rd = Rake::RDocTask.new("rdoc") do |rdoc|
 end
 
 # ====================================================================
-# Create a task that will package the Rake software into distributable
+# Create a task that will package the Remote Rake software into distributable
 # tar, zip and gem files.
 
 PKG_FILES = FileList[
@@ -185,12 +202,11 @@ else
     
     #### Basic information.
 
-    s.name = 'rake'
+    s.name = 'rrake'
     s.version = $package_version
     s.summary = "Ruby based make-like utility."
     s.description = <<-EOF
-      Rake is a Make-like program implemented in Ruby. Tasks
-      and dependencies are specified in standard Ruby syntax. 
+      Remote Rake extends rake to run tasks on remote machines.
     EOF
 
     #### Dependencies and requirements.
@@ -211,8 +227,8 @@ else
     s.require_path = 'lib'                         # Use these for libraries.
 
     s.bindir = "bin"                               # Use these for applications.
-    s.executables = ["rake"]
-    s.default_executable = "rake"
+    s.executables = ["rrake"]
+    s.default_executable = "rrake"
 
     #### Documentation and testing.
 
@@ -222,10 +238,10 @@ else
 
     #### Author and project details.
 
-    s.author = "Jim Weirich"
-    s.email = "jim@weirichhouse.org"
-    s.homepage = "http://rake.rubyforge.org"
-    s.rubyforge_project = "rake"
+    s.author = "Noralf Tronnes"
+    s.email = "notro@tronnes.org"
+    s.homepage = "http://rrake.rubyforge.org"
+    s.rubyforge_project = "rrake"
 #     if ENV['CERT_DIR']
 #       s.signing_key = File.join(ENV['CERT_DIR'], 'gem-private_key.pem')
 #       s.cert_chain  = [File.join(ENV['CERT_DIR'], 'gem-public_cert.pem')]
@@ -237,13 +253,13 @@ else
     pkg.need_tar = true
   end
 
-  file "rake.gemspec" => ["Rakefile", "lib/rake.rb"] do |t|
+  file "rrake.gemspec" => ["Rakefile", "lib/rrake.rb"] do |t|
     require 'yaml'
     open(t.name, "w") { |f| f.puts SPEC.to_yaml }
   end
 
   desc "Create a stand-alone gemspec"
-  task :gemspec => "rake.gemspec"
+  task :gemspec => "rrake.gemspec"
 end
 
 # Misc tasks =========================================================
@@ -266,7 +282,7 @@ def show_line(msg, lines, loc)
   printf "%6s %6s   %s\n", lines.to_s, loc.to_s, msg
 end
 
-desc "Count lines in the main rake file"
+desc "Count lines in the main rrake file"
 task :lines do
   total_lines = 0
   total_code = 0
@@ -305,7 +321,7 @@ task :rf => :rubyfiles
 # Creating a release
 
 def plugin(plugin_name)
-  require "rake/plugins/#{plugin_name}"
+  require "rrake/plugins/#{plugin_name}"
 end
 
 task :noop
@@ -341,7 +357,7 @@ task :prerelease, :rel, :reuse, :reltest do |t, args|
 
   # Is a release number supplied?
   unless args.rel
-    fail "Usage: rake release[X.Y.Z] [REUSE=tag_suffix]"
+    fail "Usage: rrake release[X.Y.Z] [REUSE=tag_suffix]"
   end
 
   # Is the release different than the current release.
@@ -368,9 +384,9 @@ task :update_version, :rel, :reuse, :reltest,
   if args.rel == CURRENT_VERSION
     announce "No version change ... skipping version update"
   else
-    announce "Updating Rake version to #{args.rel}"
-    open("lib/rake.rb") do |rakein|
-      open("lib/rake.rb.new", "w") do |rakeout|
+    announce "Updating Remote Rake version to #{args.rel}"
+    open("lib/rrake.rb") do |rakein|
+      open("lib/rrake.rb.new", "w") do |rakeout|
 	rakein.each do |line|
 	  if line =~ /^RAKEVERSION\s*=\s*/
 	    rakeout.puts "RAKEVERSION = '#{args.rel}'"
@@ -380,11 +396,11 @@ task :update_version, :rel, :reuse, :reltest,
 	end
       end
     end
-    mv "lib/rake.rb.new", "lib/rake.rb"
+    mv "lib/rrake.rb.new", "lib/rrake.rb"
     if args.reltest
       announce "Release Task Testing, skipping commiting of new version"
     else
-      sh %{svn commit -m "Updated to version #{args.rel}" lib/rake.rb} # "
+      sh %{svn commit -m "Updated to version #{args.rel}" lib/rrake.rb} # "
     end
   end
 end

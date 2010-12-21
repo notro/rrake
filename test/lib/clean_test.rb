@@ -1,8 +1,8 @@
 #!/usr/bin/env ruby
 
 require 'test/unit'
-require 'rake'
-require 'rake/clean'
+require 'rrake'
+require 'rrake/clean'
 
 class TestClean < Test::Unit::TestCase
   include Rake
