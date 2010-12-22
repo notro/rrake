@@ -1,0 +1,14 @@
+name: rrake
+document: http://rrake.rubyforge.org
+download: http://rubyforge.org/project/rrake_and_something
+description: >
+    <p>This package contains RemoteRake, a Rake clone with remote task execution.</p>
+
+    <p> RemoteRake has the following features: </p>
+
+    <ul>
+      <li>Same syntax as ordinary Rakefiles.</li>
+      <li>The remote keyword defines where to run the task.</li>
+      <li>Conditions cause a task's execution to depend upon the prerequisites execution status.</li>
+      <li>The decision to execute a task can be overrided with a proc.</li>
+    </ul>

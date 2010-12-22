@@ -2,7 +2,9 @@
 
 # Copyright 2003, 2004, 2005 by Jim Weirich (jim@weirichhouse.org)
 # All rights reserved.
-
+#
+# Copyright 2010 by Noralf Tronnes
+#
 # This file may be distributed under an MIT style license.  See
 # MIT-LICENSE for details.
 
@@ -204,9 +206,9 @@ else
 
     s.name = 'rrake'
     s.version = $package_version
-    s.summary = "Ruby based make-like utility."
+    s.summary = "A Rake clone with remote task execution."
     s.description = <<-EOF
-      Remote Rake extends rake to run tasks on remote machines.
+      RemoteRake extends rake to run tasks on remote machines.
     EOF
 
     #### Dependencies and requirements.
