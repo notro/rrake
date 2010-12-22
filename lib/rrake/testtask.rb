@@ -137,7 +137,7 @@ module Rake
     def fix # :nodoc:
       case ruby_version
       when '1.8.2'
-        "\"#{find_file 'rake/ruby182_test_unit_fix'}\""
+        "\"#{find_file 'rrake/ruby182_test_unit_fix'}\""
       else
         nil
       end || ''
@@ -159,7 +159,7 @@ module Rake
     end
 
     def rake_loader # :nodoc:
-      find_file('rake/rake_test_loader') or
+      find_file('rrake/rake_test_loader') or
         fail "unable to find rake test loader"
     end
 
