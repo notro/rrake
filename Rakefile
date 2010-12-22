@@ -17,6 +17,7 @@ end
 require 'rrake/clean'
 require 'rrake/testtask'
 require 'rrake/rdoctask'
+require 'rrake/rspectask'
 
 CLEAN.include('**/*.o', '*.dot', '**/*.rbc')
 CLOBBER.include('doc/example/main', 'testdata')
@@ -70,7 +71,8 @@ module TestFiles
 end
 
 namespace :test do
-  Rake::TestTask.new(:all) do |t|
+  task :all => [:rake_all, :rspec_all]
+  ::Rake::TestTask.new(:rake_all) do |t|
     t.test_files = TestFiles::ALL
     t.libs << "."
     t.warning = true
@@ -93,14 +95,32 @@ namespace :test do
     t.libs << "."
     t.warning = true
   end
+  
+  task :rspec_all => [:rspec_units, :rspec_functional, :rspec_contribs]
+  RSpec::Core::RakeTask.new(:rspec_units) do |t|
+    #t.rspec_opts = ["-c", "--fail-fast", "-f progress", "-r ./spec/spec_helper.rb"]
+    t.rspec_opts = ["-f documentation", "-r ./spec/spec_helper.rb"]
+    t.pattern = 'spec/lib_*_spec.rb'
+  end
+
+  RSpec::Core::RakeTask.new(:rspec_functional) do |t|
+    t.rspec_opts = ["-f documentation", "-r ./spec/spec_helper.rb"]
+    t.pattern = 'spec/functional_*_spec.rb'
+  end
+
+  RSpec::Core::RakeTask.new(:rspec_contribs) do |t|
+    t.rspec_opts = ["-f documentation", "-r ./spec/spec_helper.rb"]
+    t.pattern = 'spec/contribs_*_spec.rb'
+  end
+
 end
 
 begin
-  # Make sure rcov uses rrake
+  # Make sure rcov uses rrake and not rake
   module ::Kernel
     alias :rrake_orig_require :require
     def require(file)
-      #puts "rcov require(#{file})"
+      #puts "Rakefile require(#{file})"
       if file =~ /^rake/
         file.gsub! /^rake/, 'rrake'
         #puts "=>  switched to #{file}"
@@ -120,7 +140,7 @@ begin
     dot_rakes = 
     t.rcov_opts = [
       '-xRakefile', '-xrakefile', '-xpublish.rf',
-      '-xlib/rrake/contrib', '-x/Library', 
+      '-xlib/rake/contrib', '-x/Library', 
       '--text-report',
       '--sort coverage'
     ] + FileList['rakelib/*.rake'].pathmap("-x%p")
