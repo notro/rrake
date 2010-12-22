@@ -19,13 +19,13 @@ RemoteRake has the following features:
 
 Download and install  rake with the following.
 
-   gem install rrake
+   TODO gem install rrake
 
 === Normal Installation
 
 You can download the source tarball of the latest version of RemoteRake from
 
-* http://rubyforge.org/project/showfiles.php?group_id=
+* TODO http://rubyforge.org/project/showfiles.php?group_id=
 
 Extract the tarball and run
 
@@ -80,7 +80,7 @@ Type "rrake --help" for all available options.
 
 === Source Repository
 
-Rake is currently hosted at github. The github web page is
+RemoteRake is currently hosted at github. The github web page is
 http://github.com/notro/rrake. The public git clone URL is
 
 * git://github.com/notro/rrake.git
@@ -132,6 +132,7 @@ Issues and bug reports can be tracked here:
 == Credits
 
 [<b>Jim Weirich</b>] For making a very versatile build tool.
+[<b>Matz</b>] For making a very flexible and enjoyable language.
 
 == License
 
@@ -154,9 +155,9 @@ new feature to be submitted in the form of new unit tests.
 
 Author::   Noralf Tronnes <notro@tronnes.org>
 Requires:: Ruby 1.8.0 or later
-License::  Copyright 2003-2008 by Jim Weirich.
-           Copyright 2010 by Noralf Tronnes
-           Released under an MIT-style license.  See the LICENSE file
+License::  Copyright 2003-2010 by Jim Weirich.
+           Copyright 2010 by Noralf Tronnes.
+           Released under an MIT-style license.  See the MIT-LICENSE file
            included in the distribution.
 
 == Warranty
