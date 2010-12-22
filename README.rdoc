@@ -81,7 +81,7 @@ Type "rrake --help" for all available options.
 === Source Repository
 
 Rake is currently hosted at github. The github web page is
-http://github.com/jimweirich/rake. The public git clone URL is
+http://github.com/notro/rrake. The public git clone URL is
 
 * git://github.com/notro/rrake.git
 
@@ -93,20 +93,20 @@ If you wish to run the unit and functional tests that come with Rake:
 * CD into the top project directory of rake.
 * Type one of the following:
 
-     rake                  # If you have a version of rake installed
-     ruby -Ilib bin/rrake  # If you do not have a version of rake installed.
+     rrake                  # If you have a version of rrake installed
+     ruby -Ilib bin/rrake  # If you do not have a version of rrake installed.
 
 === Issues and Bug Reports
 
 Feature requests and bug reports can be made here
 
-* <not yet>
+* <TODO>
  
 No account is needed for posting requests.  
 
 Issues and bug reports can be tracked here:
 
-* <not yet>
+* <TODO>
 
 == Online Resources
 
@@ -127,9 +127,7 @@ Issues and bug reports can be tracked here:
 
 == Other Rake spin offs
 
-* DRAKE — Distributed Rake
-  A branch of Rake supporting automatic parallelizing of tasks.
-  drake.rubyforge.org/
+* Distributed Rake: A branch of Rake supporting automatic parallelizing of tasks. http://drake.rubyforge.org/
 
 == Credits
 
@@ -142,7 +140,7 @@ Rake is available under an MIT-style license.
 :include: MIT-LICENSE
 
 == Support
-
+<TODO>
 The Rake homepage is http://rrake.rubyforge.org.  You can find the Rake
 RubyForge page at http://rubyforge.org/projects/rrake.
 
