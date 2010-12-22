@@ -37,6 +37,7 @@ require 'ostruct'
 require 'rrake/ext/module'
 require 'rrake/ext/string'
 require 'rrake/ext/time'
+require 'rrake/ext/proc'
 
 require 'rrake/win32'
 
