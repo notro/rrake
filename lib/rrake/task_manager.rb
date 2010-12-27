@@ -1,7 +1,11 @@
+#require 'rrake/logging'
+
 module Rake
 
   # The TaskManager module is a mixin for managing tasks.
   module TaskManager
+    include Logging
+    
     # Track the last comment made in the Rakefile.
     attr_accessor :last_description
     alias :last_comment :last_description    # Backwards compatibility

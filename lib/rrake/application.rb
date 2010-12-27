@@ -1,6 +1,7 @@
 require 'shellwords'
 require 'optparse'
 
+require 'rrake/logging'
 require 'rrake/task_manager'
 require 'rrake/win32'
 
@@ -11,6 +12,7 @@ module Rake
   # command line, a Rake::Application object is created and run.
   #
   class Application
+    include Logging
     include TaskManager
 
     # The name of the application (typically 'rake')
@@ -24,6 +26,9 @@ module Rake
 
     # List of the top level task names (task names from the command line).
     attr_reader :top_level_tasks
+
+    # Application logging object
+    attr_reader :log
 
     DEFAULT_RAKEFILES = ['rakefile', 'Rakefile', 'rakefile.rb', 'Rakefile.rb'].freeze
 
@@ -39,6 +44,8 @@ module Rake
       @default_loader = Rake::DefaultLoader.new
       @original_dir = Dir.pwd
       @top_level_tasks = []
+      self.log_context = @name
+      @log = log_init @name
       add_loader('rb', DefaultLoader.new)
       add_loader('rf', DefaultLoader.new)
       add_loader('rake', DefaultLoader.new)
@@ -128,12 +135,16 @@ module Rake
       begin
         yield
       rescue SystemExit => ex
+        info "exit aborted rrake: #{ex.backtrace.first}"
         # Exit silently with current status
         raise
       rescue OptionParser::InvalidOption => ex
+        fatal ex.message
         $stderr.puts ex.message
         exit(false)
       rescue Exception => ex
+        fatal ex.message
+        debug2 "stack trace: #{ex.backtrace.inspect}"
         # Exit with error message
         display_error_message(ex)
         exit(false)
@@ -405,6 +416,85 @@ module Rake
       ]
     end
 
+    # rrake added options
+    def standard_rrake_options
+      [
+        ['--log DEST:LEVEL, ', "Multiple log destinations with level, comma separated.", "Dest: stdout, stderr, syslog, <filename>", "Level: ALL, DEBUG2, DEBUG, INFO, ERROR, FATAL, OFF",
+          lambda { |value|
+            current_verbose = $VERBOSE
+            $VERBOSE = false
+            formatter = Log4r::PatternFormatter.new :pattern => "%d %5l %m"
+            value.split(",").each do |ol|
+              fail "illegal log argument" unless ol.include?(':')
+              ol = ol.strip.split(":")
+              outp = nil
+              case ol[0].downcase
+                when 'stdout'
+                  outp = Log4r::StdoutOutputter.new 'stdout'
+                  outp.formatter = formatter
+                  log.outputters << outp
+                when 'stderr'
+                  outp = Log4r::StderrOutputter.new 'stderr'
+                  outp.formatter = formatter
+                  log.outputters << outp
+                when 'syslog'
+                  if windows?
+                    error "illegal log argument: syslog can't be used on Windows"
+                  else
+                    require 'log4r/outputter/syslogoutputter'
+                    outp = Log4r::SyslogOutputter.new name
+                    outp.formatter = formatter
+                    log.outputters << outp
+                  end
+                else
+                  begin
+                    outp = Log4r::FileOutputter.new ol[0], :filename => ol[0]
+                  rescue StandardError => e
+                    fail "illegal log argument, file error #{ol[0]}: #{e}"
+                  end
+                  outp.formatter = formatter
+                  log.outputters << outp
+                  fail "illegal log argument, unknown output #{ol[0]}" unless outp
+              end
+              begin
+                outp.level = Log4r.const_get(ol[1].upcase) if outp
+              rescue NameError => e
+                fail "illegal log argument, unknown level: #{ol[1]}"
+              end
+            end
+            log.level = log.outputters.collect { |out| out.level }.min
+            log.outputters.each do |out|
+              k = out.class.to_s =~ /^Log4r::.*Outputter$/ ? out.class.to_s.split('::')[1][0..-10]: out.class.to_s
+              debug "Log to #{k}: #{out.name}, level: #{['ALL', 'DEBUG2', 'DEBUG', 'INFO', 'ERROR', 'FATAL', 'OFF'][out.level]}"
+            end
+            $VERBOSE = current_verbose
+          }
+        ],
+        ['--debug rake|all', "Print method call trace to stdout.",
+          lambda { |value|
+            case value.downcase
+              when 'rake': $debug_all = false
+              when 'all':  $debug_all = true
+              else fail "illegal debug argument"
+            end
+            options.debug = true
+            $debug_indent = 0
+            set_trace_func proc { |event, file, line, id, binding, classname|
+              if $debug_all or (classname.to_s =~ /^Rake/ and event != 'line')
+                $debug_indent -= 2 if event == 'return' and $debug_indent > 1
+                $stdout.print " "*$debug_indent + sprintf( "%-8s %s:%-2d %10s %8s\n", event, file, line, id, classname)
+                $debug_indent += 2 if event == 'call'
+              end
+            }
+          }
+        ],
+      ]
+    end
+
+    def standard_options
+      standard_rake_options + standard_rrake_options
+    end
+
     # Read and handle the command line options.
     def handle_options
       options.rakelib = ['rakelib']
@@ -420,7 +510,7 @@ module Rake
           exit
         end
 
-        standard_rake_options.each { |args| opts.on(*args) }
+        standard_options.each { |args| opts.on(*args) }
         opts.environment('RAKEOPT')
       end.parse!
 
@@ -469,6 +559,7 @@ module Rake
 
     def raw_load_rakefile # :nodoc:
       rakefile, location = find_rakefile_location
+      debug "directory #{location}"
       if (! options.ignore_system) &&
           (options.load_system || rakefile.nil?) &&
           system_dir && File.directory?(system_dir)
@@ -480,6 +571,7 @@ module Rake
         fail "No Rakefile found (looking for: #{@rakefiles.join(', ')})" if
           rakefile.nil?
         @rakefile = rakefile
+        debug2 "raw_load_rakefile: #{@rakefile}"
         Dir.chdir(location)
         puts "(in #{Dir.pwd})" unless options.silent
         $rakefile = @rakefile if options.classic_namespace
@@ -535,10 +627,13 @@ module Rake
         end
       end
       @top_level_tasks.push("default") if @top_level_tasks.size == 0
+      debug2 "collect_tasks => #{@top_level_tasks.join(', ')}"
+      @top_level_tasks
     end
 
     # Add a file to the list of files to be imported.
     def add_import(fn)
+      debug2 "add_import(#{fn})"
       @pending_imports << fn
     end
 

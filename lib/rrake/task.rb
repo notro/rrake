@@ -1,4 +1,5 @@
 require 'rrake/invocation_exception_mixin'
+require 'rrake/logging'
 
 module Rake
   
@@ -12,6 +13,8 @@ module Rake
   # use the +file+ and +task+ convenience methods.
   #
   class Task
+    include Logging
+    
     # List of prerequisites for a task.
     attr_reader :prerequisites
 
@@ -80,6 +83,13 @@ module Rake
       @scope = app.current_scope
       @arg_names = nil
       @locations = []
+      self.log_context = @application.respond_to?(:name) ? @application.name : ''
+      debug2 "Created task: #{@name}"
+    end
+
+    # Application log object
+    def log
+      @application.respond_to?(:log) ? @application.log : nil
     end
 
     # Enhance a task with prerequisites or actions.  Returns self.
@@ -149,6 +159,7 @@ module Rake
     def invoke_with_call_chain(task_args, invocation_chain) # :nodoc:
       new_chain = InvocationChain.append(self, invocation_chain)
       @lock.synchronize do
+        debug "invoke #{name} #{format_trace_flags}"
         if application.options.trace
           puts "** Invoke #{name} #{format_trace_flags}"
         end
@@ -189,6 +200,7 @@ module Rake
     # Execute the actions associated with this task.
     def execute(args=nil)
       args ||= EMPTY_TASK_ARGS
+      debug "Execute #{application.options.dryrun ? '(dry run) ' : ''}#{name}"
       if application.options.dryrun
         puts "** Execute (dry run) #{name}"
         return
