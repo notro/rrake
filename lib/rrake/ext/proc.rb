@@ -2,6 +2,41 @@
 # Rake extension methods for Proc.
 #
 
+require 'proc_source'
+
+# Doesn't handled eval'd procs
+#   For solution to this see eval redef: http://bjax.rubyforge.org/svn/trunk/bjax/lib/serialize_proc.rb
+# We don't use ruby2ruby because of windows.
+#   The ruby2ruby gem needs to compile some code, which is a hassle on Windows.
+class Proc # :nodoc:
+  rake_extension("_dump") do
+    # Dump to Marshal format.
+    def _dump(limit)
+      fail "can't dump eval'd proc" if source.nil?
+#      puts "_dump(#{limit})\n  fn: #{source.file}\n  line: #{source.lines.first}"
+      str = Marshal.dump([source.to_s, source.file, source.lines.first])
+#      print "  => "; p str
+      str
+    end
+  end
+  
+  rake_extension("_load") do
+    # Load from Marshal format. Uses eval.
+    def self._load(str)
+#      print "self._load "; p str
+      proc_str, fn, line = Marshal.load(str)
+#      print "  proc_str: "; p proc_str
+#      puts "  fn: #{fn}\n  line: #{line}"
+      eval("Proc.new #{proc_str}", binding, fn, line.to_i)
+    end
+  end
+end
+
+
+
+
+
+=begin
 require 'ruby2ruby'
 require 'sexp_processor'
 require 'unified_ruby'
@@ -102,3 +137,4 @@ class Proc
     end
   end
 end
+=end
