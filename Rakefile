@@ -71,7 +71,10 @@ module TestFiles
 end
 
 namespace :test do
+  desc "Run all tests"
   task :all => [:rake_all, :rspec_all]
+  desc "Run all standard rake tests"
+  task :rake_all
   ::Rake::TestTask.new(:rake_all) do |t|
     t.test_files = TestFiles::ALL
     t.libs << "."
@@ -96,6 +99,7 @@ namespace :test do
     t.warning = true
   end
   
+  desc "Run all rrake RSpec tests"
   task :rspec_all => [:rspec_units, :rspec_functional, :rspec_contribs]
   RSpec::Core::RakeTask.new(:rspec_units) do |t|
     #t.rspec_opts = ["-c", "--fail-fast", "-f progress", "-r ./spec/spec_helper.rb"]
