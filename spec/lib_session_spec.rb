@@ -14,8 +14,10 @@ describe Rake::Session do
   
   it 'should set last_access on creation' do
     t = Time.now
+    sleep 0.01
     s = Rake::Session.new Rake::Application.new
     s.last_access.should > t
+    sleep 0.01
     s.last_access.should < Time.now
   end
   
