@@ -237,7 +237,16 @@ else
 
     #### Dependencies and requirements.
 
-    #s.add_dependency('log4r', '> 1.0.4')
+    s.required_ruby_version = '>= 1.8.7'
+
+    s.add_dependency('storable', '>= 0.8.4')
+    s.add_dependency('log4r', '>= 1.1.9')
+
+    s.add_development_dependency('rspec', '>= 2.3.0')
+    s.add_development_dependency('flexmock', '>= 0.8.11')
+    # rcov needs a compiler present on the system
+    # session doesn't work on Windows because fork is missing =>  s.add_development_dependency('session', '>= 3.1.0')
+
     #s.requirements << ""
 
     #### Which files are to be included in this gem?  Everything!  (Except CVS directories.)
@@ -272,6 +281,11 @@ else
 #       s.signing_key = File.join(ENV['CERT_DIR'], 'gem-private_key.pem')
 #       s.cert_chain  = [File.join(ENV['CERT_DIR'], 'gem-public_cert.pem')]
 #     end
+
+    #### Further installation instructions.
+
+    s.post_install_message = File.read('INSTALLATION_NOTES')
+
   end
 
   package_task = Rake::GemPackageTask.new(SPEC) do |pkg|

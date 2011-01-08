@@ -1,0 +1,11 @@
+**************************************************
+
+  To make rrake run without the full path:
+
+   - put the gem bin directory in the path
+     (/var/lib/gems/n.n/bin on Ubuntu)
+  or
+   - Make a symbolic link or copy the file to a directory in the path
+     (ex. /usr/bin on Ubuntu).
+
+**************************************************

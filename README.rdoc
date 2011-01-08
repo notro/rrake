@@ -99,12 +99,13 @@ http://github.com/notro/rrake. The public git clone URL is
 
 If you wish to run the unit and functional tests that come with Rake:
 
-* Install the 'session' gem in order to run the functional tests.
-* CD into the top project directory of rake.
+* Use the --development switch on gem install rrake to get the needed gems.
+* Install the 'session' gem in order to run the functional tests (doesn't work on Windows).
+* CD into the top project directory of rrake.
 * Type one of the following:
 
-     rrake                  # If you have a version of rrake installed
-     ruby -Ilib bin/rrake  # If you do not have a version of rrake installed.
+     rrake -T                 # If you have a version of rrake installed
+     ruby -Ilib bin/rrake -T  # If you do not have a version of rrake installed.
 
 === Issues and Bug Reports
 
