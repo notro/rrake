@@ -12,6 +12,16 @@ RemoteRake has the following features:
 
 * The decision to execute a task can be overridden with a proc.
 
+Currently tested on:
+
+* ubuntu-10.04.1-server-i386
+
+* Windows XP SP3
+
+* Mac OS X 10.6.5
+
+* OpenBSD 4.8 snapshot 20101224
+
 
 == Installation
 
@@ -154,7 +164,7 @@ new feature to be submitted in the form of new unit tests.
 = Other stuff
 
 Author::   Noralf Tronnes <notro@tronnes.org>
-Requires:: Ruby 1.8.0 or later
+Requires:: Ruby 1.8.7 or later
 License::  Copyright 2003-2010 by Jim Weirich.
            Copyright 2010 by Noralf Tronnes.
            Released under an MIT-style license.  See the MIT-LICENSE file
