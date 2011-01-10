@@ -2,6 +2,7 @@
 
 require 'test/unit'
 require 'rrake/testtask'
+require 'test/rake_test_setup'
 
 class TestTestTask < Test::Unit::TestCase
   include Rake
