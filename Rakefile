@@ -100,20 +100,24 @@ namespace :test do
   end
   
   desc "Run all rrake RSpec tests"
-  task :rspec_all => [:rspec_units, :rspec_functional, :rspec_contribs]
+  task :rspec_all
+  RSpec::Core::RakeTask.new(:rspec_all) do |t|
+    t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
+    t.pattern = 'spec/*_spec.rb'
+  end
+
   RSpec::Core::RakeTask.new(:rspec_units) do |t|
-    #t.rspec_opts = ["-c", "--fail-fast", "-f progress", "-r ./spec/spec_helper.rb"]
-    t.rspec_opts = ["-f documentation", "-r ./spec/spec_helper.rb"]
+    t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
     t.pattern = 'spec/lib_*_spec.rb'
   end
 
   RSpec::Core::RakeTask.new(:rspec_functional) do |t|
-    t.rspec_opts = ["-f documentation", "-r ./spec/spec_helper.rb"]
+    t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
     t.pattern = 'spec/functional_*_spec.rb'
   end
 
   RSpec::Core::RakeTask.new(:rspec_contribs) do |t|
-    t.rspec_opts = ["-f documentation", "-r ./spec/spec_helper.rb"]
+    t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
     t.pattern = 'spec/contribs_*_spec.rb'
   end
 
