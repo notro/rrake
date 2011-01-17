@@ -33,6 +33,15 @@ describe "Rake::Task override_needed" do
     t.invoke
     test_marker.should == t
   end
+  
+  it "should show up in investigation" do
+    t = task :one
+    t.investigation.should =~/needed.*true.*\(not overrided/
+    t.override_needed { false }
+    t.investigation.should =~/needed.*false.*\(overrided.*\{.*false.*\}/
+    t.override_needed { puts "012345678901234567890123456789"; false }
+    t.investigation.should =~/needed.*false.*\(overrided.*\{.*puts.*\.\.\./
+  end
 end
 
 
@@ -181,5 +190,14 @@ describe Rake::Task do
     t = task :task => ["ns:task_1" => true]
     t.invoke
     t.needed?.should == true
+  end
+  
+  it "conditions should show up in investigation" do
+    t = task :one
+    t.investigation.should =~/conditions.*\{\}$/
+    task :one => [:two => false, :three => true]
+    task :two
+    task :three
+    t.investigation.should =~/conditions.*\{.*two.*false.*three.*true.*\}$/
   end
 end
