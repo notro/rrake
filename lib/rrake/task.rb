@@ -158,6 +158,7 @@ module Rake
     # circular dependencies.
     def invoke_with_call_chain(task_args, invocation_chain) # :nodoc:
       new_chain = InvocationChain.append(self, invocation_chain)
+      self.log_context = new_chain.to_s[7..-1]
       @lock.synchronize do
         debug "invoke #{name} #{format_trace_flags}"
         if application.options.trace

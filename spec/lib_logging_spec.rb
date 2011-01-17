@@ -197,3 +197,33 @@ describe "Rake::Logging.log_context" do
     o.read.should =~ / FATAL.*\[thread\].*ctx3 test/
   end
 end
+
+
+describe Rake::Task do
+  
+  before :all do
+    Rake.application = nil
+    @io = StringIO.new
+    Rake.application.log_add_output Log4r::IOOutputter.new("io", @io), Log4r::ALL
+  end
+  
+  before :each do
+    Rake.application.clear
+    @io.string = ""
+  end
+  
+  it "log_context should be set differently for a task depending upon it's place in the chain of invocation" do
+    t = task :one => [:two, :common]
+    task :two => :common
+    task :common => :three
+    task :three
+    t.invoke
+    @io.rewind
+    log = @io.read
+    log.should include "[one]"
+    log.should include "[one => two]"
+    log.should include "[one => two => common]"
+    log.should include "[one => two => common => three]"
+    log.should include "[one => common]"
+  end
+end
