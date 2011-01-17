@@ -135,7 +135,7 @@ module Rake
       begin
         yield
       rescue SystemExit => ex
-        info "exit aborted rrake: #{ex.backtrace.first}"
+        info "exit (#{ex.backtrace.first})"
         # Exit silently with current status
         raise
       rescue OptionParser::InvalidOption => ex
@@ -144,7 +144,7 @@ module Rake
         exit(false)
       rescue Exception => ex
         fatal ex.message
-        debug2 "stack trace: #{ex.backtrace.inspect}"
+        debug2 "stack trace: #{ex.backtrace.inspect}" rescue nil
         # Exit with error message
         display_error_message(ex)
         exit(false)
@@ -421,30 +421,21 @@ module Rake
       [
         ['--log DEST:LEVEL, ', "Multiple log destinations with level, comma separated.", "Dest: stdout, stderr, syslog, <filename>", "Level: ALL, DEBUG2, DEBUG, INFO, ERROR, FATAL, OFF",
           lambda { |value|
-            current_verbose = $VERBOSE
-            $VERBOSE = false
-            formatter = Log4r::PatternFormatter.new :pattern => "%d %5l %m"
+            options.logging = true
             value.split(",").each do |ol|
               fail "illegal log argument" unless ol.include?(':')
               ol = ol.strip.split(":")
-              outp = nil
               case ol[0].downcase
                 when 'stdout'
                   outp = Log4r::StdoutOutputter.new 'stdout'
-                  outp.formatter = formatter
-                  log.outputters << outp
                 when 'stderr'
                   outp = Log4r::StderrOutputter.new 'stderr'
-                  outp.formatter = formatter
-                  log.outputters << outp
                 when 'syslog'
                   if windows?
                     error "illegal log argument: syslog can't be used on Windows"
                   else
                     require 'log4r/outputter/syslogoutputter'
                     outp = Log4r::SyslogOutputter.new name
-                    outp.formatter = formatter
-                    log.outputters << outp
                   end
                 else
                   begin
@@ -452,22 +443,18 @@ module Rake
                   rescue StandardError => e
                     fail "illegal log argument, file error #{ol[0]}: #{e}"
                   end
-                  outp.formatter = formatter
-                  log.outputters << outp
-                  fail "illegal log argument, unknown output #{ol[0]}" unless outp
               end
               begin
-                outp.level = Log4r.const_get(ol[1].upcase) if outp
+                level = Log4r.const_get(ol[1].upcase)
               rescue NameError => e
                 fail "illegal log argument, unknown level: #{ol[1]}"
               end
+              log_add_output outp, level
             end
-            log.level = log.outputters.collect { |out| out.level }.min
             log.outputters.each do |out|
               k = out.class.to_s =~ /^Log4r::.*Outputter$/ ? out.class.to_s.split('::')[1][0..-10]: out.class.to_s
               debug "Log to #{k}: #{out.name}, level: #{['ALL', 'DEBUG2', 'DEBUG', 'INFO', 'ERROR', 'FATAL', 'OFF'][out.level]}"
             end
-            $VERBOSE = current_verbose
           }
         ],
         ['--debug rake|all', "Print method call trace to stdout.",
