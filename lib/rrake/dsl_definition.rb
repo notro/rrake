@@ -20,7 +20,10 @@ module Rake
     #   end
     #
     def task(*args, &block)
-      Rake::Task.define_task(*args, &block)
+      args, cond = Rake::Task.strip_conditions(args)
+      task = Rake::Task.define_task(*args, &block)
+      task.add_conditions cond
+      task
     end
     
     

@@ -39,6 +39,9 @@ module Rake
     # location option set).
     attr_reader :locations
 
+    # List of conditions attached to a task.
+    attr_reader :conditions
+
     # Return task name
     def to_s
       name
@@ -83,6 +86,8 @@ module Rake
       @scope = app.current_scope
       @arg_names = nil
       @locations = []
+      @override_needed_block = nil
+      @conditions = {}
       self.log_context = @application.respond_to?(:name) ? @application.name : ''
       debug2 "Created task: #{@name}"
     end
@@ -133,6 +138,7 @@ module Rake
     def clear
       clear_prerequisites
       clear_actions
+      clear_conditions
       self
     end
 
@@ -146,6 +152,11 @@ module Rake
     def clear_actions
       actions.clear
       self
+    end
+
+    # Remove the task conditions
+    def clear_conditions
+      @conditions = {}
     end
 
     # Invoke the task if it is needed.  Prerequites are invoked first.
@@ -220,9 +231,45 @@ module Rake
       end
     end
 
+    # When needed? is called to find out if
+    # the task should execute it's action,
+    # the supplied block will be called.
+    #
+    #   #This task will not run
+    #   task :task1 do
+    #     puts "never gets here"
+    #   end
+    #   Rake::Task[:task1].override_needed do |t|
+    #     false
+    #   end
+    def override_needed(&block)
+      @override_needed_block = block
+    end
+
     # Is this task needed?
+    #
+    # Return true if not override_needed has been used or the task has been conditioned.
     def needed?
-      true
+      if @override_needed_block != nil
+        @override_needed_block.call(self)
+      elsif @conditions != {} then
+        condition_keys = @conditions.keys.map {|key| key.to_s}
+        if (condition_keys & prerequisites) != condition_keys then
+          fail "not all conditions found in prerequisites"
+        end
+        result = true
+        @conditions.each do |key, value|
+          task = application.lookup(key.to_s, [scope])
+          if task then
+            result &= (task.needed? == value)
+          else
+            fail "Task: #{key} not found"
+          end
+        end
+        result
+      else
+        true
+      end
     end
 
     # Timestamp for this task.  Basic tasks return the current time for their
@@ -231,6 +278,14 @@ module Rake
       prerequisite_tasks.collect { |pre| pre.timestamp }.max || Time.now
     end
 
+    # Add conditions to the task.
+    # Will overwrite any existing conditions for a prerequisite.
+    #
+    # override_needed will override these conditions.
+    def add_conditions(conditions)
+      @conditions.merge!(conditions)
+    end
+   
     # Add a description to the task.  The description can consist of an option
     # argument list (enclosed brackets) and an optional comment.
     def add_description(description)
@@ -333,6 +388,32 @@ module Rake
       # part of the name.
       def scope_name(scope, task_name)
         (scope + [task_name]).join(':')
+      end
+
+      # Strip conditions from args
+      # [{:task3=>[{:task1=>false, :task2=>true}]}] => [{:task3=>[:task1, :task2]}] , {:task1=>false, :task2=>true}
+      #
+      def strip_conditions(*args) # :nodoc:
+        args.flatten!
+        #puts "strip_conditions:"
+        #print "  args:   "; p args
+        if args.last.is_a?(Hash)
+          deps = args[-1]
+          #print "  deps:   "; p deps
+          key, value = deps.map { |k, v| [k,v] }.first
+          #print "  key:   "; p key
+          #print "  value: "; p value
+          if value.is_a?(Array) and value.first.is_a?(Hash)
+            #puts "  is array"
+            deps = value.first.keys
+            cond = value.first
+            #print "    deps: "; p deps
+            #print "    cond: "; p cond
+            args[-1] = {key=>deps}
+            return [args, cond]
+          end
+        end
+        [args, {}]
       end
 
     end # class << Rake::Task
