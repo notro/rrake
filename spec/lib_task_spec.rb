@@ -39,8 +39,8 @@ describe "Rake::Task override_needed" do
     t.investigation.should =~/needed.*true.*\(not overrided/
     t.override_needed { false }
     t.investigation.should =~/needed.*false.*\(overrided.*\{.*false.*\}/
-    t.override_needed { puts "012345678901234567890123456789"; false }
-    t.investigation.should =~/needed.*false.*\(overrided.*\{.*puts.*\.\.\./
+    t.override_needed { var = "012345678901234567890123456789"; false }
+    t.investigation.should =~/needed.*false.*\(overrided.*\{.*var.*\.\.\./
   end
 end
 
