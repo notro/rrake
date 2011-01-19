@@ -65,24 +65,48 @@ module Rake
       log_event :DEBUG2, message, &block
     end
     
+    def debug2?
+      log.debug2?
+    end
+    
     def debug(message, &block)
       log_event :DEBUG, message, &block
+    end
+    
+    def debug?
+      log.debug?
     end
     
     def info(message, &block)
       log_event :INFO, message, &block
     end
     
+    def info?
+      log.info?
+    end
+    
     def warn(message, &block)
       log_event :WARN, message, &block
+    end
+    
+    def warn?
+      log.warn?
     end
     
     def error(message, &block)
       log_event :ERROR, message, &block
     end
     
+    def error?
+      log.error?
+    end
+    
     def fatal(message, &block)
       log_event :FATAL, message, &block
+    end
+    
+    def fatal?
+      log.fatal?
     end
     
     def log_event(level, message, &block) # :nodoc:

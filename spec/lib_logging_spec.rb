@@ -6,8 +6,8 @@ module LogTesting
     io
   end
   
-  def test_methods(regexp ,&block)
-    o = ioout Log4r::ALL
+  def test_methods(regexp, level=Log4r::ALL ,&block)
+    o = ioout level
     yield
     o.rewind
     o.read.should =~ regexp
@@ -131,36 +131,47 @@ describe "Rake::Logging log methods" do
   
   it "should log debug2 message" do
     test_methods(/ DEBUG2 .* low level/) do
+      debug2?.should == true
       debug2 "low level message"
     end
   end
 
   it "should log debug message" do
-    test_methods(/ DEBUG .* low level/) do
+    test_methods(/ DEBUG .* low level/, Log4r::DEBUG) do
+      debug2?.should == false
+      debug?.should == true
       debug "low level message"
     end
   end
 
   it "should log info message" do
-    test_methods(/ INFO .* low level/) do
+    test_methods(/ INFO .* low level/, Log4r::INFO) do
+      debug?.should == false
+      info?.should == true
       info "low level message"
     end
   end
 
   it "should log warn message" do
-    test_methods(/ WARN .* low level/) do
+    test_methods(/ WARN .* low level/, Log4r::WARN) do
+      info?.should == false
+      warn?.should == true
       warn "low level message"
     end
   end
 
   it "should log error message" do
-    test_methods(/ ERROR .* low level/) do
+    test_methods(/ ERROR .* low level/, Log4r::ERROR) do
+      warn?.should == false
+      error?.should == true
       error "low level message"
     end
   end
 
   it "should log fatal message" do
-    test_methods( / FATAL .* low level/) do
+    test_methods( / FATAL .* low level/, Log4r::FATAL) do
+      error?.should == false
+      fatal?.should == true
       fatal "low level message"
     end
   end
