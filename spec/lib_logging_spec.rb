@@ -202,7 +202,7 @@ end
 describe Rake::Task do
   
   before :all do
-    Rake.application = nil
+    Rake.application.instance_variable_set "@log", Rake.application.log_init(Rake.application.name)
     @io = StringIO.new
     Rake.application.log_add_output Log4r::IOOutputter.new("io", @io), Log4r::ALL
   end
