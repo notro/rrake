@@ -74,10 +74,10 @@ describe Rake::Logging do
     @out.should match /FATAL .* --bad-argument/
   end
   
-  it "Exception should give fatal and debug2 log message" do
+  it "Exception should give fatal and debug log message" do
     ARGV.clear
     ARGV << '--log'
-    ARGV << 'stderr:debug2'
+    ARGV << 'stderr:debug'
     @app = Rake::Application.new
     @out = capture_stderr { 
       lambda {
@@ -88,7 +88,7 @@ describe Rake::Logging do
       }.should raise_error SystemExit
     }
     @out.should match /FATAL .*standard_exception_handling_caught_exception/
-    @out.should match /DEBUG2 .*stack trace/
+    @out.should match /DEBUG .*stack trace/
   end
   
 end

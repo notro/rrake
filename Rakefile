@@ -243,8 +243,12 @@ else
 
     s.required_ruby_version = '>= 1.8.7'
 
+    s.add_dependency('i18n', '>= 0.5.0')
     s.add_dependency('storable', '>= 0.8.4')
     s.add_dependency('log4r', '>= 1.1.9')
+    s.add_dependency('rack', '>= 1.2.1')
+    s.add_dependency('grape', '>= 0.1.1')
+    s.add_dependency('nestful', '>= 0.0.6')
 
     s.add_development_dependency('rspec', '>= 2.3.0')
     s.add_development_dependency('flexmock', '>= 0.8.11')

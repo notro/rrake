@@ -198,6 +198,7 @@ describe Rake::Task do
     task :one => [:two => false, :three => true]
     task :two
     task :three
-    t.investigation.should =~/conditions.*\{.*two.*false.*three.*true.*\}$/
+    t.investigation.should =~/conditions.*\{.*two.*false.*\}$/
+    t.investigation.should =~/conditions.*\{.*three.*true.*\}$/
   end
 end

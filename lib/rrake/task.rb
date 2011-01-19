@@ -42,6 +42,8 @@ module Rake
     # List of conditions attached to a task.
     attr_reader :conditions
 
+    attr_writer :override_needed_block # :nodoc:
+
     # Return task name
     def to_s
       name

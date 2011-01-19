@@ -1,5 +1,6 @@
 require 'rrake/win32'
 
+
 describe 'rrake commandline' do
   include CaptureStdout
   include InEnvironment
@@ -78,4 +79,31 @@ describe 'rrake commandline' do
     @app.log.outputters.collect { |o| o.class }.should include(Log4r::StdoutOutputter, Log4r::StderrOutputter, Log4r::FileOutputter)
   end
   
+  it '--port should not accept illegal number' do
+    in_environment do
+      lambda {  command_line('--port', '0') }.should raise_error RuntimeError
+    end
+    in_environment do
+      lambda {  command_line('--port', 'string') }.should raise_error RuntimeError
+    end
+    in_environment do
+      lambda {  command_line('--port', '66000') }.should raise_error RuntimeError
+    end
+  end
+
+  it '--port should accept 9000' do
+    in_environment do
+      command_line('--port', '9000')
+      @app.options.port.should == 9000
+    end
+  end
+
+  it 'Rack should parse arguments after --server' do
+    in_environment do
+      @out = capture_stdout {
+        lambda {  command_line('--server', '-h') }.should raise_error SystemExit
+      }
+      @out.should =~/rackup/
+    end
+  end
 end

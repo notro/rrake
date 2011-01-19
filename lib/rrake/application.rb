@@ -32,6 +32,8 @@ module Rake
 
     DEFAULT_RAKEFILES = ['rakefile', 'Rakefile', 'rakefile.rb', 'Rakefile.rb'].freeze
 
+    DEFAULT_PORT = 9292
+
     # Initialize a Rake::Application object.
     def initialize
       super
@@ -144,7 +146,7 @@ module Rake
         exit(false)
       rescue Exception => ex
         fatal ex.message
-        debug2 "stack trace: #{ex.backtrace.inspect}" rescue nil
+        debug "stack trace: #{ex.backtrace.inspect}" rescue nil
         # Exit with error message
         display_error_message(ex)
         exit(false)
@@ -419,6 +421,24 @@ module Rake
     # rrake added options
     def standard_rrake_options
       [
+        ['--port PORT', "Standard port used to connect to remote servers. Also used in server mode. Default is #{options.port}.",
+          lambda { |value|
+            port = value.to_i
+            fail "illegal port number: #{value}" unless (port > 0 && port <= 65535)
+            options.port = port
+          }
+        ],
+        ['--server', "Run rrake as a server. Arguments after this is parsed by Rack.",
+          lambda { |value|
+            srv = Rack::Server.new
+            srv.options[:Port] = options.port
+            srv.options[:Logger] = Rake.application if srv.server == Rack::Handler::WEBrick and options.logging == true
+            srv.app = Rake::API
+            srv.middleware.merge!( 'test' => [lambda {|server| server.server.name =~ /CGI/ ? nil : [Rack::LoggingLogger, Rake.application] }] )
+            srv.start
+            exit
+          }
+        ],
         ['--log DEST:LEVEL, ', "Multiple log destinations with level, comma separated.", "Dest: stdout, stderr, syslog, <filename>", "Level: ALL, DEBUG2, DEBUG, INFO, ERROR, FATAL, OFF",
           lambda { |value|
             options.logging = true
@@ -486,6 +506,7 @@ module Rake
     def handle_options
       options.rakelib = ['rakelib']
       options.top_level_dsl = true
+      options.port = DEFAULT_PORT
 
       OptionParser.new do |opts|
         opts.banner = "rrake [-f rakefile] {options} targets..."
