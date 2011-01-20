@@ -119,6 +119,31 @@ module Rake
       Rake.application.last_description = description
     end
     
+    # Make the subsequent task execute on a remote machine
+    # If host is not specified, the last remote with a host specified will be used.
+    # Argument: host|ip[:port]
+    #  remote "server.com"
+    #  file "somefile" do
+    #    puts "will run if somefile does not exist on server.com"
+    #  end
+    #  
+    #  remote
+    #  task :task do
+    #    puts "will execute on server.com"
+    #  end
+    def remote(host=nil)
+      if host then
+        Rake.application.last_remote = host
+        Rake.application.last_remote_with_host = host
+      else
+        if Rake.application.last_remote_with_host then
+          Rake.application.last_remote = Rake.application.last_remote_with_host
+        else
+          fail ArgumentError, "missing host"
+        end
+      end
+    end
+    
     # Import the partial Rakefiles +fn+.  Imported files are loaded
     # _after_ the current file is completely loaded.  This allows the
     # import statement to appear anywhere in the importing file, and yet

@@ -10,12 +10,20 @@ module Rake
     attr_accessor :last_description
     alias :last_comment :last_description    # Backwards compatibility
 
+    # Tracks the last remote made in the Rakefile.
+    attr_accessor :last_remote
+
+    # Track the last remote with a hostname made in the Rakefile.
+    attr_accessor :last_remote_with_host #:nodoc:
+
     def initialize
       super
       @tasks = Hash.new
       @rules = Array.new
       @scope = Array.new
       @last_description = nil
+      @last_remote = nil
+      @last_remote_with_host = nil
     end
 
     def create_rule(*args, &block)
@@ -157,6 +165,7 @@ module Rake
     def clear
       @tasks.clear
       @rules.clear
+      @last_remote_with_host = nil
     end
 
     # Lookup a task, using scope and the scope hints in the task name.
