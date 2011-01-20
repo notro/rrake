@@ -39,6 +39,8 @@ module Rake
       deps = deps.collect {|d| d.to_s }
       task = intern(task_class, task_name)
       task.set_arg_names(arg_names) unless arg_names.empty?
+      task.remote = @last_remote if @last_remote
+      @last_remote = nil
       if Rake::TaskManager.record_task_metadata
         add_location(task)
         task.add_description(get_description(task))

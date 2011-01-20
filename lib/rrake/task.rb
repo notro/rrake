@@ -44,6 +44,9 @@ module Rake
 
     attr_writer :override_needed_block # :nodoc:
 
+    # Remote host on which to execute this task
+    attr_reader :remote
+
     # Return task name
     def to_s
       name
@@ -90,6 +93,7 @@ module Rake
       @locations = []
       @override_needed_block = nil
       @conditions = {}
+      @remote = nil
       self.log_context = @application.respond_to?(:name) ? @application.name : ''
       debug2 "Created task: #{@name}"
     end
@@ -317,6 +321,31 @@ module Rake
       end
     end
     private :add_comment
+
+    # Sets the remote host on which to execute this task
+    # Validates and expands the given value.
+    # Can be either an uri or host[:port]
+    # Examples
+    #   task.remote = 'server.com'                # => 'http://server.com:9292'
+    #   task.remote = 'server.com:56'             # => 'http://server.com:56'
+    #   task.remote = '192.168.1.1'               # => 'http://192.168.1.1:9292'
+    #   task.remote = 'https://server.com/rrake'  # => 'https://server.com:9292/rrake'
+    def remote=(value)
+      value = value.to_s
+      begin
+        if value =~ URI::ABS_URI
+          r = URI.parse(value)
+          r = URI.parse("http://#{value}") unless r.host
+        else
+          r = URI.parse("http://#{value}")
+        end
+        raise URI::InvalidURIError unless r.host
+      rescue URI::InvalidURIError
+        fail ArgumentError, "illegal value: '#{value}'"
+      end
+      r.port = application.options.port unless value =~ /:\d+/
+      @remote = r.to_s
+    end
 
     # Set the names of the arguments for this task. +args+ should be
     # an array of symbols, one for each argument name.

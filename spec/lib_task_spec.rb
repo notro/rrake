@@ -202,3 +202,84 @@ describe Rake::Task do
     t.investigation.should =~/conditions.*\{.*three.*true.*\}$/
   end
 end
+
+
+describe "Rake::Task.remote" do
+
+  before(:all) do
+    Rake.application.clear
+  end
+  
+  [["server.com", "http://server.com:#{Rake.application.options.port}"],
+   ["server.com:4567", "http://server.com:4567"],
+   ["server.com/path", "http://server.com:#{Rake.application.options.port}/path"],
+   ["server.com:4567/path", "http://server.com:4567/path"],
+
+   ["192.168.1.1", "http://192.168.1.1:#{Rake.application.options.port}"],
+   ["192.168.1.1:4567", "http://192.168.1.1:4567"],
+   ["192.168.1.1/path", "http://192.168.1.1:#{Rake.application.options.port}/path"],
+   ["192.168.1.1:4567/path", "http://192.168.1.1:4567/path"],
+
+   ["http://server.com", "http://server.com:#{Rake.application.options.port}"],
+   ["http://server.com:4567", "http://server.com:4567"],
+   ["http://server.com/path", "http://server.com:#{Rake.application.options.port}/path"],
+   ["http://server.com:4567/path", "http://server.com:4567/path"],
+
+   ["http://192.168.1.1", "http://192.168.1.1:#{Rake.application.options.port}"],
+   ["http://192.168.1.1:4567", "http://192.168.1.1:4567"],
+   ["http://192.168.1.1/path", "http://192.168.1.1:#{Rake.application.options.port}/path"],
+   ["http://192.168.1.1:4567/path", "http://192.168.1.1:4567/path"],
+  ].each do |test|
+
+    it "should accept #{test[0]}" do
+      t = task :one
+      t.remote = test[0]
+      t.remote.should == test[1]
+    end
+
+  end
+  
+  ["", "456", "192.168.1", "192.168.1:45", "http://192.168.1"].each do |test|
+
+    it "should fail with #{test}" do
+      t = task :one
+      lambda { t.remote = test }.should raise_error ArgumentError
+    end
+
+  end
+  
+end
+
+
+describe "remote keyword" do
+
+  before(:all) do
+    Rake.application.clear
+  end
+  
+  it "should set Task.remote" do
+    remote "server.com"
+    t = task :one
+    t.remote.should == "http://server.com:#{Rake.application.options.port}"
+  end
+  
+  it "after initial remote with host, subsequent remotes should set Task.remote to the initial value" do
+    remote "server.com"
+    t1 = task :one
+    remote
+    t2 = task :two
+    remote
+    t3 = task :three
+    t2.remote.should == "http://server.com:#{Rake.application.options.port}"
+    t3.remote.should == "http://server.com:#{Rake.application.options.port}"
+  end
+  
+  it "multiple remote on the same task should change the value" do
+    remote "server.com"
+    t = task :one
+    t.remote.should == "http://server.com:#{Rake.application.options.port}"
+    remote "server.org"
+    t = task :one
+    t.remote.should == "http://server.org:#{Rake.application.options.port}"
+  end
+end
