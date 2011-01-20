@@ -78,6 +78,7 @@ describe Rake::API do
     post("task/timestamptask", {:klass => Marshal.dump(Rake::Task)})
     unix_time = get("task/timestamptask/timestamp")
     Time.at(unix_time).should < (Time.now + 1)
+    Time.at(unix_time).should > (Time.now - 2)
   end
   
   it "should get task needed?" do
