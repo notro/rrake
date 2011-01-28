@@ -134,7 +134,7 @@ module Rake
         args = option_list + @rdoc_files
         if @external
           argstring = args.join(' ')
-          sh %{ruby -Ivendor vendor/rd #{argstring}}
+          sh %{rdoc #{argstring}}
         else
           require 'rdoc/rdoc'
           RDoc::RDoc.new.document(args)

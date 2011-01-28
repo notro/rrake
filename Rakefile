@@ -190,7 +190,6 @@ end
 BASE_RDOC_OPTIONS = [
   '--line-numbers', '--inline-source',
   '--main' , 'README.rdoc',
-  '--title', 'Remote Rake'
 ]
 
 rd = Rake::RDocTask.new("rdoc") do |rdoc|
@@ -203,6 +202,7 @@ rd = Rake::RDocTask.new("rdoc") do |rdoc|
   rdoc.rdoc_files.include('README.rdoc', 'MIT-LICENSE', 'TODO', 'CHANGES')
   rdoc.rdoc_files.include('lib/**/*.rb', 'doc/**/*.rdoc')
   rdoc.rdoc_files.exclude(/\bcontrib\b/)
+  rdoc.external = true
 end
 
 # ====================================================================
