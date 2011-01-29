@@ -70,6 +70,14 @@ module TestFiles
   ALL = TOP + UNIT + FUNCTIONAL + CONTRIB
 end
 
+module SpecFiles
+  EXT = FileList['spec/libext_*_spec.rb']
+  NODEP = EXT + FileList['spec/libnodep_*_spec.rb']
+  UNIT = NODEP + FileList['spec/lib_*_spec.rb']
+  FUNCTIONAL = FileList['spec/functional_*_spec.rb']
+  ALL = UNIT + FUNCTIONAL
+end
+
 namespace :test do
   desc "Run all tests"
   task :all => [:rake_all, :rspec_all]
@@ -100,25 +108,33 @@ namespace :test do
   end
   
   desc "Run all rrake RSpec tests"
-  task :rspec_all
   RSpec::Core::RakeTask.new(:rspec_all) do |t|
     t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
-    t.pattern = 'spec/*_spec.rb'
+    t.pattern = SpecFiles::ALL
   end
 
+  desc "Run RSpec tests for external libraries that rrake has extended"
+  RSpec::Core::RakeTask.new(:rspec_ext) do |t|
+    t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
+    t.pattern = SpecFiles::EXT
+  end
+
+  desc "Run RSpec tests for internal libraries that don't depend on other internal libraries"
+  RSpec::Core::RakeTask.new(:rspec_nodep) do |t|
+    t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
+    t.pattern = SpecFiles::NODEP
+  end
+
+  desc "Run RSpec tests for the library"
   RSpec::Core::RakeTask.new(:rspec_units) do |t|
     t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
-    t.pattern = 'spec/lib_*_spec.rb'
+    t.pattern = SpecFiles::UNIT
   end
 
+  desc "Run functional RSpec tests"
   RSpec::Core::RakeTask.new(:rspec_functional) do |t|
     t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
-    t.pattern = 'spec/functional_*_spec.rb'
-  end
-
-  RSpec::Core::RakeTask.new(:rspec_contribs) do |t|
-    t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
-    t.pattern = 'spec/contribs_*_spec.rb'
+    t.pattern = SpecFiles::FUNCTIONAL
   end
 
 end
