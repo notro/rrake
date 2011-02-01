@@ -27,7 +27,7 @@ describe Rake::API do
     end
     @ctx = "lib_api_spec"
     @srv = TestRakeServer.new
-    @url = "http://127.0.0.1:#{Rake.application.options.port}/api/v1"
+    @url = "http://127.0.0.1:#{::Rake.application.options.port}/api/v1"
   end
   
   before :each do

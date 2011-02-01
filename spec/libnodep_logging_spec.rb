@@ -2,11 +2,11 @@
 module LogTesting
   def ioout(level)
     io = StringIO.new
-    log_add_output Log4r::IOOutputter.new("io_#{level}", io), level
+    log_add_output ::Log4r::IOOutputter.new("io_#{level}", io), level
     io
   end
   
-  def test_methods(regexp, level=Log4r::ALL ,&block)
+  def test_methods(regexp, level=::Log4r::ALL ,&block)
     o = ioout level
     yield
     o.rewind
@@ -16,47 +16,47 @@ end
 
 
 describe "Rake::Logging.log_init" do
-  include Rake::Logging
+  include ::Rake::Logging
   
   attr_accessor :log
 
   it "should set custom levels" do
     log_init 'test'
-    (Log4r.constants & ["DEBUG2", "DEBUG", "INFO", "WARN", "ERROR", "FATAL"]).size.should == 6
+    ((::Log4r.constants.collect { |c| c.to_sym}) & [:DEBUG2, :DEBUG, :INFO, :WARN, :ERROR, :FATAL]).size.should == 6
   end
   
   it "should return a logger" do
-    log_init('test').class.should == Log4r::Logger
+    log_init('test').class.should == ::Log4r::Logger
   end
   
   it "should set log level to OFF" do
-    log_init('test').level.should == Log4r::OFF
+    log_init('test').level.should == ::Log4r::OFF
   end
 end
 
 
 describe "Rake::Logging.log_add_output" do
-  include Rake::Logging
+  include ::Rake::Logging
   
   attr_accessor :log
 
   it "should add an outputter and set the logger level" do
     @log = log_init('test')
-    outp = Log4r::IOOutputter.new('io', StringIO.new)
-    log_add_output outp, Log4r::ALL
+    outp = ::Log4r::IOOutputter.new('io', StringIO.new)
+    log_add_output outp, ::Log4r::ALL
     @log.outputters.should == [outp]
-    @log.level.should == Log4r::ALL
+    @log.level.should == ::Log4r::ALL
   end
 end
 
 
 describe "Rake::Logging.log_context (without name method)" do
-  include Rake::Logging
+  include ::Rake::Logging
   
   attr_accessor :log
 
   before :each do
-    Thread.current[Rake::RRAKE_LOGCTX] = nil
+    Thread.current[::Rake::RRAKE_LOGCTX] = nil
   end
   
   it "should initially be ''" do
@@ -72,7 +72,7 @@ end
 
 
 describe "Rake::Logging.log_context (with name method)" do
-  include Rake::Logging
+  include ::Rake::Logging
   
   attr_accessor :log, :name
   
@@ -81,7 +81,7 @@ describe "Rake::Logging.log_context (with name method)" do
   end
   
   before :each do
-    Thread.current[Rake::RRAKE_LOGCTX] = nil
+    Thread.current[::Rake::RRAKE_LOGCTX] = nil
   end
   
   it "should initially be ''" do
@@ -116,7 +116,7 @@ end
 
 
 describe "Rake::Logging log methods" do
-  include Rake::Logging
+  include ::Rake::Logging
   include LogTesting
   
   attr_accessor :log, :name
@@ -137,7 +137,7 @@ describe "Rake::Logging log methods" do
   end
 
   it "should log debug message" do
-    test_methods(/ DEBUG .* low level/, Log4r::DEBUG) do
+    test_methods(/ DEBUG .* low level/, ::Log4r::DEBUG) do
       debug2?.should == false
       debug?.should == true
       debug "low level message"
@@ -145,7 +145,7 @@ describe "Rake::Logging log methods" do
   end
 
   it "should log info message" do
-    test_methods(/ INFO .* low level/, Log4r::INFO) do
+    test_methods(/ INFO .* low level/, ::Log4r::INFO) do
       debug?.should == false
       info?.should == true
       info "low level message"
@@ -153,7 +153,7 @@ describe "Rake::Logging log methods" do
   end
 
   it "should log warn message" do
-    test_methods(/ WARN .* low level/, Log4r::WARN) do
+    test_methods(/ WARN .* low level/, ::Log4r::WARN) do
       info?.should == false
       warn?.should == true
       warn "low level message"
@@ -161,7 +161,7 @@ describe "Rake::Logging log methods" do
   end
 
   it "should log error message" do
-    test_methods(/ ERROR .* low level/, Log4r::ERROR) do
+    test_methods(/ ERROR .* low level/, ::Log4r::ERROR) do
       warn?.should == false
       error?.should == true
       error "low level message"
@@ -169,7 +169,7 @@ describe "Rake::Logging log methods" do
   end
 
   it "should log fatal message" do
-    test_methods( / FATAL .* low level/, Log4r::FATAL) do
+    test_methods( / FATAL .* low level/, ::Log4r::FATAL) do
       error?.should == false
       fatal?.should == true
       fatal "low level message"
@@ -180,7 +180,7 @@ end
 
 
 describe "Rake::Logging.log_context" do
-  include Rake::Logging
+  include ::Rake::Logging
   include LogTesting
   
   attr_accessor :log, :name
@@ -213,13 +213,13 @@ end
 describe Rake::Task do
   
   before :all do
-    Rake.application.instance_variable_set "@log", Rake.application.log_init(Rake.application.name)
+    ::Rake.application.instance_variable_set "@log", ::Rake.application.log_init(::Rake.application.name)
     @io = StringIO.new
-    Rake.application.log_add_output Log4r::IOOutputter.new("io", @io), Log4r::ALL
+    ::Rake.application.log_add_output ::Log4r::IOOutputter.new("io", @io), ::Log4r::ALL
   end
   
   before :each do
-    Rake.application.clear
+    ::Rake.application.clear
     @io.string = ""
   end
   

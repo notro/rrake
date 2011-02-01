@@ -1,16 +1,16 @@
 require 'rrake/win32'
 
-describe Rake::Logging do
+describe ::Rake::Logging do
   include CaptureStdout
   include InEnvironment
   include CommandHelp
   
   before :all do
-    Rake.mkdir_p "testdata", :verbose=>false
+    ::Rake.mkdir_p "testdata", :verbose=>false
   end
   
   after :all do
-    Rake.rm_f "testdata", :verbose=>false
+    ::Rake.rm_f "testdata", :verbose=>false
   end
   
   it 'loglevel DEBUG should show debug messages' do
@@ -28,7 +28,7 @@ describe Rake::Logging do
   end
   
   it 'logging to file should work' do
-    Rake.rm_rf "testdata/rrake.log", :verbose=>false
+    ::Rake.rm_rf "testdata/rrake.log", :verbose=>false
     @out = capture_stdout { 
       command_line('--log', 'testdata/rrake.log:info')
     }
@@ -37,7 +37,7 @@ describe Rake::Logging do
     File.new('testdata/rrake.log', 'r').read.should include('logging2file')
   end
   
-  if !Rake::Win32.windows?
+  if !::Rake::Win32.windows?
   it 'logging to syslog should not raise error' do
     @out = capture_stdout { 
       command_line('--log', 'syslog:info')
@@ -65,7 +65,7 @@ describe Rake::Logging do
     ARGV << '--log'
     ARGV << 'stderr:fatal'
     ARGV << '--bad-argument'
-    @app = Rake::Application.new
+    @app = ::Rake::Application.new
     @out = capture_stderr { 
       lambda {
         @app.init
@@ -78,7 +78,7 @@ describe Rake::Logging do
     ARGV.clear
     ARGV << '--log'
     ARGV << 'stderr:debug'
-    @app = Rake::Application.new
+    @app = ::Rake::Application.new
     @out = capture_stderr { 
       lambda {
        @app.init

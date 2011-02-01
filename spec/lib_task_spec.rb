@@ -1,7 +1,7 @@
 
 describe "Rake::Task override_needed" do
   before :each do
-    Rake.application.clear
+    ::Rake.application.clear
   end
   
   it "should not execute if false is returned" do
@@ -47,27 +47,27 @@ end
 
 describe "Rake::Task.strip_conditions" do
   before(:each) do
-    Rake::Task.clear
+    ::Rake::Task.clear
   end
 
   it "empty args" do
-    Rake::Task.strip_conditions([]).should == [[], {}]
+    ::Rake::Task.strip_conditions([]).should == [[], {}]
   end
   
   it ":task" do
-    Rake::Task.strip_conditions(:task).should == [[:task], {}]
+    ::Rake::Task.strip_conditions(:task).should == [[:task], {}]
   end
   
   it ":task => :task_1" do
-    Rake::Task.strip_conditions(:task => :task_1).should == [[:task => :task_1], {}]
+    ::Rake::Task.strip_conditions(:task => :task_1).should == [[:task => :task_1], {}]
   end
   
   it ":task => [:task_1, :task_2]" do
-    Rake::Task.strip_conditions(:task => [:task_1, :task_2]).should == [[:task => [:task_1, :task_2]], {}]
+    ::Rake::Task.strip_conditions(:task => [:task_1, :task_2]).should == [[:task => [:task_1, :task_2]], {}]
   end
   
   it ":task => [:task_1 => true]" do
-    Rake::Task.strip_conditions(:task => [:task_1 => true]).should == [[:task => [:task_1]], {:task_1 => true}]
+    ::Rake::Task.strip_conditions(:task => [:task_1 => true]).should == [[:task => [:task_1]], {:task_1 => true}]
   end
   
   it ":task => [:task_1 => true, :task_2 => false]" do
@@ -83,18 +83,18 @@ end
 describe Rake::Task do
 
   before(:all) do
-    Rake.mkdir_p "testdata", :verbose=>false
+    ::Rake.mkdir_p "testdata", :verbose=>false
     @file1 = "testdata/file1"
     @file2 = "testdata/file2"
-    touch @file1
+    ::Rake.touch @file1
   end
 
   before(:each) do
-    Rake::Task.clear
+    ::Rake::Task.clear
   end
 
   after(:all) do
-    Rake.rm_f "testdata", :verbose=>false
+    ::Rake.rm_f "testdata", :verbose=>false
   end
 
   it "should run without conditions and prerequisites" do
@@ -207,27 +207,27 @@ end
 describe "Rake::Task.remote" do
 
   before(:all) do
-    Rake.application.clear
+    ::Rake.application.clear
   end
   
-  [["server.com", "http://server.com:#{Rake.application.options.port}"],
+  [["server.com", "http://server.com:#{::Rake.application.options.port}"],
    ["server.com:4567", "http://server.com:4567"],
-   ["server.com/path", "http://server.com:#{Rake.application.options.port}/path"],
+   ["server.com/path", "http://server.com:#{::Rake.application.options.port}/path"],
    ["server.com:4567/path", "http://server.com:4567/path"],
 
-   ["192.168.1.1", "http://192.168.1.1:#{Rake.application.options.port}"],
+   ["192.168.1.1", "http://192.168.1.1:#{::Rake.application.options.port}"],
    ["192.168.1.1:4567", "http://192.168.1.1:4567"],
-   ["192.168.1.1/path", "http://192.168.1.1:#{Rake.application.options.port}/path"],
+   ["192.168.1.1/path", "http://192.168.1.1:#{::Rake.application.options.port}/path"],
    ["192.168.1.1:4567/path", "http://192.168.1.1:4567/path"],
 
-   ["http://server.com", "http://server.com:#{Rake.application.options.port}"],
+   ["http://server.com", "http://server.com:#{::Rake.application.options.port}"],
    ["http://server.com:4567", "http://server.com:4567"],
-   ["http://server.com/path", "http://server.com:#{Rake.application.options.port}/path"],
+   ["http://server.com/path", "http://server.com:#{::Rake.application.options.port}/path"],
    ["http://server.com:4567/path", "http://server.com:4567/path"],
 
-   ["http://192.168.1.1", "http://192.168.1.1:#{Rake.application.options.port}"],
+   ["http://192.168.1.1", "http://192.168.1.1:#{::Rake.application.options.port}"],
    ["http://192.168.1.1:4567", "http://192.168.1.1:4567"],
-   ["http://192.168.1.1/path", "http://192.168.1.1:#{Rake.application.options.port}/path"],
+   ["http://192.168.1.1/path", "http://192.168.1.1:#{::Rake.application.options.port}/path"],
    ["http://192.168.1.1:4567/path", "http://192.168.1.1:4567/path"],
   ].each do |test|
 
@@ -254,13 +254,13 @@ end
 describe "remote keyword" do
 
   before(:all) do
-    Rake.application.clear
+    ::Rake.application.clear
   end
   
   it "should set Task.remote" do
     remote "server.com"
     t = task :one
-    t.remote.should == "http://server.com:#{Rake.application.options.port}"
+    t.remote.should == "http://server.com:#{::Rake.application.options.port}"
   end
   
   it "after initial remote with host, subsequent remotes should set Task.remote to the initial value" do
@@ -270,16 +270,16 @@ describe "remote keyword" do
     t2 = task :two
     remote
     t3 = task :three
-    t2.remote.should == "http://server.com:#{Rake.application.options.port}"
-    t3.remote.should == "http://server.com:#{Rake.application.options.port}"
+    t2.remote.should == "http://server.com:#{::Rake.application.options.port}"
+    t3.remote.should == "http://server.com:#{::Rake.application.options.port}"
   end
   
   it "multiple remote on the same task should change the value" do
     remote "server.com"
     t = task :one
-    t.remote.should == "http://server.com:#{Rake.application.options.port}"
+    t.remote.should == "http://server.com:#{::Rake.application.options.port}"
     remote "server.org"
     t = task :one
-    t.remote.should == "http://server.org:#{Rake.application.options.port}"
+    t.remote.should == "http://server.org:#{::Rake.application.options.port}"
   end
 end

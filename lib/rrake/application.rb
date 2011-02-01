@@ -480,9 +480,12 @@ module Rake
         ['--debug rake|all', "Print method call trace to stdout.",
           lambda { |value|
             case value.downcase
-              when 'rake': $debug_all = false
-              when 'all':  $debug_all = true
-              else fail "illegal debug argument"
+              when 'rake'
+                $debug_all = false
+              when 'all'
+                $debug_all = true
+              else 
+                fail "illegal debug argument"
             end
             options.debug = true
             $debug_indent = 0
