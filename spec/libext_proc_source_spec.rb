@@ -54,22 +54,6 @@ describe ProcString do
       lambda?.should == true
     end
   end
-  
-  describe "Marshal" do
-    it "should dump and load" do
-      test = "do\n false\n end"
-      file = "ps_test"
-      lines = (23..25)
-      p1 = ProcString.new test
-      p1.file = file
-      p1.lines = lines
-      str = Marshal.dump(p1)
-      p2 = Marshal.load str
-      p2.should == test
-      p2.file.should == file
-      p2.lines.should == lines
-    end
-  end
 end
 
 
@@ -247,23 +231,26 @@ pending "This currently fails on ruby 1.9. It returns the surrounding block."
     
   end
   
-  describe "Marshal" do
+  describe "JSON" do
     it "should fail if #source is nil" do
       p1 = eval "Proc.new { false }"
       p1.source.should be_nil
-      expect{ Marshal.dump p1 }.to raise_error RuntimeError
+      expect{ p1.to_json }.to raise_error RuntimeError
     end
     
     it "should work with simple proc" do
+      l1 = __LINE__ + 1
       p1 = Proc.new do false end
-      str = Marshal.dump(p1)
-      p2 = Marshal.load str
-      p1.source.should == p2.source
-      p1.call.should == p2.call
-      p1.source_descriptor.should == p2.source_descriptor
+      p1_j = JSON.generate p1
+      p1_j.should =~ /do false end.*#{__FILE__}.*#{l1},#{l1}/m
+      p2 = JSON.parse p1.to_json
+      p2.inspect.should =~ /#{__FILE__}:#{l1}/m
+      p1.call.should == false
+      p2.call.should == false
     end
     
     it "should work with more complex proc" do
+      l1 = __LINE__ + 1
       p1 = Proc.new do |a,b,c,d|
         sum = 0
         (1..10).each do |i|
@@ -271,7 +258,11 @@ pending "This currently fails on ruby 1.9. It returns the surrounding block."
         end
         sum
       end
-      p2 = Marshal.load(Marshal.dump(p1))
+      l2 = __LINE__ - 1
+      p1_j = JSON.generate p1
+      p1_j.should =~ /sum = 0.*#{__FILE__}.*#{l1},#{l2}/m
+      p2 = JSON.parse p1.to_json
+      p2.inspect.should =~ /#{__FILE__}:#{l1}/m
       p2.source.should == p1.source
       p1.call(2,3,5,7).should == 935
       p2.call(2,3,5,7).should == 935
