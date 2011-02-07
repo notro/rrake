@@ -8,8 +8,8 @@ rescue LoadError
   fail "win32-process gem is needed on Windows"
 end
 
-require 'test/capture_stdout'
-require 'test/in_environment'
+require './test/capture_stdout'
+require './test/in_environment'
 
 
 module CommandHelp
