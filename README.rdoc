@@ -12,6 +12,8 @@ RemoteRake has the following features:
 
 * The decision to execute a task can be overridden with a proc.
 
+* Actions and override_needed must use do/end. Brackets {} is not currently supported (breaks on 1.9).
+
 Currently tested on:
 
 * ubuntu-10.04.1-server-i386

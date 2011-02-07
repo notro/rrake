@@ -1,4 +1,5 @@
 
+
 describe "Rake::Task override_needed" do
   before :each do
     ::Rake.application.clear
@@ -37,10 +38,10 @@ describe "Rake::Task override_needed" do
   it "should show up in investigation" do
     t = task :one
     t.investigation.should =~/needed.*true.*\(not overrided/
-    t.override_needed { false }
-    t.investigation.should =~/needed.*false.*\(overrided.*\{.*false.*\}/
-    t.override_needed { var = "012345678901234567890123456789"; false }
-    t.investigation.should =~/needed.*false.*\(overrided.*\{.*var.*\.\.\./
+    t.override_needed do false end
+    t.investigation.should =~/needed.*false.*\(overrided.*do\s*false\s*end/
+    t.override_needed do var = "012345678901234567890123456789"; false end
+    t.investigation.should =~/needed.*false.*\(overrided.*do\s*var.*\.\.\./
   end
 end
 

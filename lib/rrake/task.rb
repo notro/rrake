@@ -240,6 +240,7 @@ module Rake
     # When needed? is called to find out if
     # the task should execute it's action,
     # the supplied block will be called.
+    # Brackets {} is not supported. Must use do/end.
     #
     #   #This task will not run
     #   task :task1 do
