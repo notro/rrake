@@ -59,7 +59,7 @@ describe Rake::API do
   end
   
   it "should create task" do
-    response = post("task/task1", :klass => Marshal.dump(Rake::Task))
+    response = post("task/task1", :klass => Rake::Task.to_s)
     get("task/task1").include?(response).should == true
   end
   
@@ -68,42 +68,38 @@ describe Rake::API do
       t.fatal "task1_log_message"
       puts "task1_puts_message"
     end
-    post("task/#{t.name}", {:klass => Marshal.dump(t.class), :block => Marshal.dump(t.actions.first)})
+    post("task/#{t.name}", {:klass => t.class.to_s, :block => t.actions.first.to_json})
     output = put("task/#{t.name}/execute")
     output.should =~ /task1_puts_message/
     @srv.logfile.read.should =~ /FATAL.*task1_log_message/
   end
   
   it "should get task timestamp" do
-    post("task/timestamptask", {:klass => Marshal.dump(Rake::Task)})
+    post("task/timestamptask", {:klass => Rake::Task.to_s})
     unix_time = get("task/timestamptask/timestamp")
     Time.at(unix_time).should < (Time.now + 1)
     Time.at(unix_time).should > (Time.now - 2)
   end
   
   it "should get task needed?" do
-    post("task/task", {:klass => Marshal.dump(Rake::Task)})
+    post("task/task", {:klass => Rake::Task.to_s})
     needed = get("task/task/needed")
     needed.should == true
   end
   
   it "should be able to override_needed" do
     t = task :task1
-    t.override_needed { false }
-    post("task/#{t.name}", {:klass => Marshal.dump(t.class)})
-    post("task/task1/override_needed", {:block => Marshal.dump(t.instance_variable_get("@override_needed_block"))})
+    t.override_needed do 99 end
+    post("task/#{t.name}", {:klass => t.class.to_s})
+    post("task/task1/override_needed", {:block => t.instance_variable_get("@override_needed_block").to_json})
     needed = get("task/task1/needed")
-    needed.should == false
+    needed.should == 99
   end
   
   it "investigation should work" do
-    post("task/task1", {:klass => Marshal.dump(Rake::Task)})
+    post("task/task1", {:klass => Rake::Task.to_s})
     msg = get("task/task1/investigation")
     msg.should =~/Investigating.*task1/
   end
 
 end
-
-
-# response = Nestful.post("#{@url}/session", :format => :json, :params => {:trace => self.log_context, })
-# response = Nestful.post(@url, :format => :json, :params => {:trace => self.log_context, :klass => Marshal.dump(self.class), :prerequisites => @prerequisites, :conditions => @conditions})
