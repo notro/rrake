@@ -39,7 +39,6 @@ require 'rrake/ext/string'
 require 'rrake/ext/time'
 require 'rrake/ext/proc_source'
 require 'rrake/ext/rack'
-require 'rrake/ext/nestful'
 
 require 'rrake/win32'
 
@@ -63,6 +62,7 @@ require 'rrake/task_manager'
 require 'rrake/application'
 require 'rrake/environment'
 require 'rrake/api'
+require 'rrake/client'
 
 $trace = false
 
