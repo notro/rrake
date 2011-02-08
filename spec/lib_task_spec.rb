@@ -10,8 +10,12 @@ describe "Rake::Task override_needed" do
       raise "should not get here"
     end
     test_marker = false
-    t.override_needed { test_marker=true; false }
+    t.override_needed do
+      test_marker=true
+      false
+    end
     t.invoke
+    t.needed?.should == false
     test_marker.should == true
   end
   
@@ -20,8 +24,9 @@ describe "Rake::Task override_needed" do
       nil
     end
     test_marker = false
-    t.override_needed { test_marker=true; true }
+    t.override_needed do test_marker=true; true end
     t.invoke
+    t.needed?.should == true
     test_marker.should == true
   end
 
@@ -30,7 +35,7 @@ describe "Rake::Task override_needed" do
       nil
     end
     test_marker = nil
-    t.override_needed { |task| test_marker=task; false }
+    t.override_needed do |task| test_marker=task; false end
     t.invoke
     test_marker.should == t
   end
@@ -162,7 +167,7 @@ describe Rake::Task do
     task :task => [:task_3, @file2] # Do not care if they execute or not
     task :task_1
     task :task_2
-    (task :task_3).override_needed {false}
+    (task :task_3).override_needed do false end
     file @file1
     file @file2
     t.invoke
@@ -205,7 +210,7 @@ describe Rake::Task do
 end
 
 
-describe "Rake::Task.remote" do
+describe "Rake::Task.remote=" do
 
   before(:all) do
     ::Rake.application.clear
