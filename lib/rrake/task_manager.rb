@@ -167,6 +167,7 @@ module Rake
     def clear
       @tasks.clear
       @rules.clear
+      @last_remote = nil
       @last_remote_with_host = nil
     end
 
