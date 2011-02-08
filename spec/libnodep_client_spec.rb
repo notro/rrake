@@ -3,6 +3,7 @@ require 'rack'
 # This rack app just returns some of what it is given
 class RackServer
   def call(env)
+    return [404, {"Content-Type" => "application/text"}, "404 not found"] if env["REQUEST_URI"] =~ /does_not_exist/
     env2 = {}
     ["CONTENT_TYPE", "HTTP_ACCEPT", "REQUEST_PATH", "REQUEST_URI", "REQUEST_METHOD", "QUERY_STRING"].each do |param|
       env2[param] = env[param]
@@ -19,12 +20,18 @@ describe ::Rake::RestClient do
   attr_reader :url
   attr_reader :log_context
   
+  # Simulate error log method for failure test
+  def error msg
+    @error = msg
+  end
+  
   before :all do
     @verbose = ! ENV['VERBOSE'].nil?
     if @verbose
       puts "\n--------------------------------------------------------------------"
       puts "  Test: #{File.basename __FILE__}\n\n"
     end
+    @error = nil
     @log_context = "logging => context"
     @escaped_log_context = ::CGI::escape self.log_context
     @url = "http://localhost:#{::Rake.application.options.port}"
@@ -67,6 +74,13 @@ describe ::Rake::RestClient do
     while @srvthr.alive?
       sleep 0.1
     end
+  end
+  
+  it "should log error message on failure" do
+#  p rget "do_not_exist"
+#  puts "@error: #{@error}"
+    expect{ rget "does_not_exist" }.to raise_error Nestful::ResourceNotFound
+    @error.should =~ /does_not_exist.*404/
   end
   
   [["/", {}, [/./]],

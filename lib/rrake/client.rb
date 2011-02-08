@@ -36,7 +36,12 @@ module Rake
   
     def rrequest(method, rel_url, params = {})
       params.merge! :trace => self.log_context
-      Nestful::Request.new("#{File.join(self.url, rel_url)}", {:method => method, :format => :json, :params => params}).execute
+      begin
+        Nestful::Request.new("#{File.join(self.url, rel_url)}", {:method => method, :format => :json, :params => params}).execute
+      rescue Exception => e
+        error "'#{File.join(self.url, rel_url)}' #{e.inspect}" if self.respond_to? :error
+        raise
+      end
     end
   end
 end
