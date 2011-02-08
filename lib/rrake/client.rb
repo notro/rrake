@@ -36,7 +36,7 @@ module Rake
   
     def rrequest(method, rel_url, params = {})
       params.merge! :trace => self.log_context
-      Nestful::Request.new("#{URI.join(self.url, rel_url)}", {:method => method, :format => :json, :params => params}).execute
+      Nestful::Request.new("#{File.join(self.url, rel_url)}", {:method => method, :format => :json, :params => params}).execute
     end
   end
 end
