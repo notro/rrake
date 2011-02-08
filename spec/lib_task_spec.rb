@@ -260,6 +260,7 @@ end
 describe "remote keyword" do
 
   before(:all) do
+    ::Rake.application.instance_variable_get("@tasks").clear
     ::Rake.application.clear
   end
   
