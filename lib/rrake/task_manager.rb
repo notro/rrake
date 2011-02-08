@@ -163,8 +163,17 @@ module Rake
       }
     end
 
+    # Clear remote servers currently defined in the tasks.
+    def clear_remote_servers
+      tasks.each do |task|
+        Nestful.put "#{task.remote}/api/v1/clear" if task.remote
+      end
+    end
+    
     # Clear all tasks in this application.
     def clear
+      debug "Application cleared"
+      clear_remote_servers
       @tasks.clear
       @rules.clear
       @last_remote = nil
