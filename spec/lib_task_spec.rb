@@ -72,7 +72,7 @@ describe "Rake::Task.strip_conditions" do
   end
   
   it ":task => [:task_1 => true, :task_2 => false]" do
-    args, deps = Rake::Task.strip_conditions(:task => [:task_1 => true, :task_2 => false])
+    args, deps = ::Rake::Task.strip_conditions(:task => [:task_1 => true, :task_2 => false])
     args.first.keys.first.should == :task
     # For some reason :task_1 and :task_2 switches place in the array from time to time when some code changes in the test are made
     (args.first.values.first.sort_by {|sym| sym.to_s}).should == [:task_1, :task_2]
