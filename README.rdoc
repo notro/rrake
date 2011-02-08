@@ -16,13 +16,13 @@ RemoteRake has the following features:
 
 Currently tested on:
 
-* ubuntu-10.04.1-server-i386
+* ubuntu-10.04.1-server-i386 (ruby-1.8.7-p330, ruby-1.9.1-p378, ruby-1.9.2-p136)
 
-* Windows XP SP3
+* Windows XP SP3 (ruby 1.8.7)
 
-* Mac OS X 10.6.5
+* Mac OS X 10.6.5 (ruby 1.8.7)
 
-* OpenBSD 4.8 snapshot 20101224
+* OpenBSD 4.8 snapshot 20101224 (ruby 1.8.7)
 
 
 == Installation
