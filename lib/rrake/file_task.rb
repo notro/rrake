@@ -13,15 +13,31 @@ module Rake
     # Is this file task needed?  Yes if it doesn't exist, or if its time stamp
     # is out of date.
     def needed?
-      ! File.exist?(name) || out_of_date?(timestamp)
+      ! file_exist? || out_of_date?(timestamp)
     end
 
     # Time stamp for file task.
     def timestamp
-      if File.exist?(name)
-        File.mtime(name.to_s)
+      if file_exist?
+        file_mtime
       else
         Rake::EARLY
+      end
+    end
+
+    def file_exist?
+      if self.url
+        rget "file_exist"
+      else
+        File.exist?(name)
+      end
+    end
+    
+    def file_mtime
+      if self.url
+        Time.at rget "file_mtime"
+      else
+        File.mtime(name.to_s)
       end
     end
 

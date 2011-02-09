@@ -1,5 +1,6 @@
 require 'rrake/invocation_exception_mixin'
 require 'rrake/logging'
+require 'rrake/client'
 
 module Rake
   
@@ -14,6 +15,7 @@ module Rake
   #
   class Task
     include Logging
+    include RestClient
     
     # List of prerequisites for a task.
     attr_reader :prerequisites
@@ -94,6 +96,7 @@ module Rake
       @override_needed_block = nil
       @conditions = {}
       @remote = nil
+      @url = nil
       self.log_context = @application.respond_to?(:name) ? @application.name : ''
       debug2 "Created task: #{@name}"
     end
@@ -177,6 +180,15 @@ module Rake
       new_chain = InvocationChain.append(self, invocation_chain)
       self.log_context = new_chain.to_s[7..-1]
       @lock.synchronize do
+        if @remote and @url.nil?
+          @url = "#{remote}/api/v1/task/#{CGI::escape(name)}"
+          rpost("", :klass => self.class.to_s)
+          rpost("override_needed", {:block => @override_needed_block.to_json}) if @override_needed_block
+          @actions.each { |action|
+            rpost("", {:klass => self.class.to_s, :block=>action.to_json})
+          }
+          debug2 "created '#{@url}'"
+        end
         debug "invoke #{name} #{format_trace_flags}"
         if application.options.trace
           puts "** Invoke #{name} #{format_trace_flags}"
@@ -215,16 +227,24 @@ module Rake
     end
     private :format_trace_flags
 
-    # Execute the actions associated with this task.
-    def execute(args=nil)
+    # Execute the actions associated with this task. 
+    # (task arguments is not supported for remote tasks)
+    def execute(args=nil) # TODO: implement argument handling for remote tasks
       args ||= EMPTY_TASK_ARGS
-      debug "Execute #{application.options.dryrun ? '(dry run) ' : ''}#{name}"
+      debug "Execute #{self.url ? '' : 'local '}#{application.options.dryrun ? '(dry run) ' : ''}#{name}#{self.url ? '(' + self.url + ')' : ''}"
       if application.options.dryrun
         puts "** Execute (dry run) #{name}"
         return
       end
       if application.options.trace
         puts "** Execute #{name}"
+      end
+      if self.url
+        raise "task arguments is not supported for remote tasks" unless args.nil? or args.to_hash.empty?
+        out = rput "execute"
+        puts out if out != "" and  !application.options.silent
+        info "Execute output: #{out.inspect}"
+        return
       end
       application.enhance_with_matching_rule(name) if @actions.empty?
       @actions.each do |act|
@@ -257,7 +277,9 @@ module Rake
     #
     # Return true if not override_needed has been used or the task has been conditioned.
     def needed?
-      if @override_needed_block != nil
+      if self.url
+        rget "needed"
+      elsif @override_needed_block != nil
         @override_needed_block.call(self)
       elsif @conditions != {} then
         condition_keys = @conditions.keys.map {|key| key.to_s}
@@ -282,7 +304,13 @@ module Rake
     # Timestamp for this task.  Basic tasks return the current time for their
     # time stamp.  Other tasks can be more sophisticated.
     def timestamp
-      prerequisite_tasks.collect { |pre| pre.timestamp }.max || Time.now
+      t = prerequisite_tasks.collect { |pre| pre.timestamp }.max
+      return t if t
+      if self.url
+          Time.at rget("timestamp")
+      else
+        Time.now
+      end
     end
 
     # Add conditions to the task.
@@ -346,6 +374,13 @@ module Rake
       end
       r.port = application.options.port unless value =~ /:\d+/
       @remote = r.to_s
+    end
+
+    # Full url to remote task
+    def url
+      return @url if @url
+      raise "remote task must be invoked before use" if @remote
+      nil
     end
 
     # Set the names of the arguments for this task. +args+ should be

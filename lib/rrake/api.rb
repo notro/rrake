@@ -87,6 +87,16 @@ class API < Grape::API
       log_return task.timestamp.to_i
     end
     
+    get "file_exist" do
+      setup
+      log_return task.file_exist?
+    end
+    
+    get "file_mtime" do
+      setup
+      log_return task.file_mtime.to_i
+    end
+    
     get "investigation" do
       setup
       log_return task.investigation
