@@ -212,7 +212,13 @@ end
 
 describe "Rake::Task.remote=" do
 
-  before(:all) do
+  before(:each) do
+    ::Rake.application.instance_variable_get("@tasks").clear
+    ::Rake.application.clear
+  end
+  
+  after(:all) do
+    ::Rake.application.instance_variable_get("@tasks").clear
     ::Rake.application.clear
   end
   
@@ -259,7 +265,12 @@ end
 
 describe "remote keyword" do
 
-  before(:all) do
+  before(:each) do
+    ::Rake.application.instance_variable_get("@tasks").clear
+    ::Rake.application.clear
+  end
+  
+  after(:all) do
     ::Rake.application.instance_variable_get("@tasks").clear
     ::Rake.application.clear
   end
