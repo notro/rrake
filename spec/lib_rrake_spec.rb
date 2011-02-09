@@ -106,4 +106,18 @@ describe 'rrake commandline' do
       @out.should =~/rackup/
     end
   end
+  
+  it '--remote should accept a value' do
+    in_environment do
+      command_line('--remote', 'server.com')
+      @app.options.remoteurl.should == 'server.com'
+    end
+  end
+
+  it '--remote should fail without a value' do
+    in_environment do
+      expect{ command_line('--remote') }.to raise_error OptionParser::MissingArgument
+    end
+  end
+
 end

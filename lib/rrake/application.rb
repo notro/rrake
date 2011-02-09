@@ -499,6 +499,11 @@ module Rake
             }
           }
         ],
+        ['--remote URL', "Set the default remote server for all tasks.",
+          lambda { |value|
+            options.remoteurl = value
+          }
+        ],
       ]
     end
 

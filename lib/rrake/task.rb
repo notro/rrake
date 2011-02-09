@@ -95,7 +95,7 @@ module Rake
       @locations = []
       @override_needed_block = nil
       @conditions = {}
-      @remote = nil
+      self.remote = @application.respond_to?(:options) ? @application.options.remoteurl : nil
       @url = nil
       self.log_context = @application.respond_to?(:name) ? @application.name : ''
       debug2 "Created task: #{@name}"
@@ -360,6 +360,10 @@ module Rake
     #   task.remote = '192.168.1.1'               # => 'http://192.168.1.1:9292'
     #   task.remote = 'https://server.com/rrake'  # => 'https://server.com:9292/rrake'
     def remote=(value)
+      if value.nil?
+        @remote = nil
+        return
+      end
       value = value.to_s
       begin
         if value =~ URI::ABS_URI

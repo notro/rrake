@@ -99,6 +99,10 @@ describe Rake::Task do
     ::Rake::Task.clear
   end
 
+  after(:each) do
+    ::Rake.application.options.remoteurl = nil
+  end
+
   after(:all) do
     ::Rake.rm_f "testdata", :verbose=>false
   end
@@ -206,6 +210,18 @@ describe Rake::Task do
     task :three
     t.investigation.should =~/conditions.*\{.*two.*false.*\}$/
     t.investigation.should =~/conditions.*\{.*three.*true.*\}$/
+  end
+  
+  it "options.remoteurl set should set remote on task creation" do
+    ::Rake.application.options.remoteurl = "http://server.net:9000"
+    t = task :remote
+    t.remote.should == "http://server.net:9000"
+    t.remote = nil
+  end
+  
+  it "illegal options.remoteurl should fail on task creation" do
+    ::Rake.application.options.remoteurl = ".net"
+    expect{ t = task :remote }.to raise_error ArgumentError
   end
 end
 
