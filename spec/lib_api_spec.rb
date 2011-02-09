@@ -15,23 +15,21 @@ describe Rake::API do
       puts "  Test: #{File.basename __FILE__}\n\n"
     end
     @log_context = "logging => lib_api_spec"
-    @srv = TestRakeServer.new
+    TestServer.start
     @url = "http://127.0.0.1:#{::Rake.application.options.port}/api/v1/"
   end
   
   before :each do
     rput "clear"
-    @srv.logfile.read
+    TestServer.msg
   end
   
   after :all do
     if @verbose
-      puts "\n\n#{@srv.logfile.path}"
-      @srv.logfile.rewind
-      puts @srv.logfile.read
+      puts "\n\n#{TestServer.logfile.path}"
+      puts TestServer.msg_all
       puts "--------------------------------------------------------------------"
     end
-    @srv.shutdown
   end
   
   it "should be able to get tasks" do
@@ -60,7 +58,7 @@ describe Rake::API do
     rpost("task/#{t.name}", {:klass => t.class.to_s, :block => t.actions.first.to_json})
     output = rput("task/#{t.name}/execute")
     output.should =~ /task1_puts_message/
-    @srv.logfile.read.should =~ /FATAL.*task1_log_message/
+    TestServer.msg.should =~ /FATAL.*task1_log_message/
   end
   
   it "should get task timestamp" do

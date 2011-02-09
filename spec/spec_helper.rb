@@ -29,7 +29,38 @@ module CommandHelp
 end
 
 
-class TestRakeServer
+module TestServer
+  extend self
+  
+  def instance
+    @instance ||= RRakeServer.new
+  end
+  
+  def start
+    instance
+    @fpos = logfile.tell
+  end
+  
+  def shutdown
+    @instance.shutdown if @instance
+  end
+  
+  def logfile
+    instance.logfile
+  end
+  
+  def msg_all
+    logfile.pos = @fpos
+    logfile.read
+  end
+  
+  def msg
+    logfile.read
+  end
+end
+
+
+class RRakeServer
   attr_reader :logfile, :pid
 
   def initialize
@@ -81,5 +112,11 @@ class TestRakeServer
   end
 end
 
+
+::RSpec.configure do |config|
+  config.after(:suite) do
+    TestServer.shutdown
+  end
+end
 
 Rake.application.init
