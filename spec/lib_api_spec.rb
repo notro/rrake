@@ -53,11 +53,12 @@ describe Rake::API do
   it "should execute task" do
     t = task :task1 do |t|
       t.fatal "task1_log_message"
-      puts "task1_puts_message"
+      puts "task1_std_out_puts_message"
+      $stderr.puts "task1_stderr_puts_message"
     end
     rpost("task/#{t.name}", {:klass => t.class.to_s, :block => t.actions.first.to_json})
     output = rput("task/#{t.name}/execute")
-    output.should =~ /task1_puts_message/
+    output.should == [["stdout", "task1_std_out_puts_message\n"], ["stderr", "task1_stderr_puts_message\n"]]
     TestServer.msg.should =~ /FATAL.*task1_log_message/
   end
   

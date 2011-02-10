@@ -7,19 +7,6 @@ class API < Grape::API
   version 'v1'
   
   helpers do
-  def capture_output
-    s = StringIO.new
-    oldstdout = $stdout
-    oldstderr = $stderr
-    $stdout = s
-    $stderr = s
-    yield
-    s.string
-  ensure
-    $stdout = oldstdout
-    $stderr = oldstderr
-  end
-  
     def setup
       Rake.application.log_context = body["trace"] if body["trace"]
       Rake.application.log_context = params["trace"] if params["trace"]
@@ -104,10 +91,10 @@ class API < Grape::API
     
     put "execute" do
       setup
-      output = capture_output do
+      capture = Rake::CaptureOutput.new do
         task.execute
       end
-      log_return output
+      log_return capture.output
     end
     
     post "override_needed" do

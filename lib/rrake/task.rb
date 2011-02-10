@@ -242,8 +242,19 @@ module Rake
       if self.url
         raise "task arguments is not supported for remote tasks" unless args.nil? or args.to_hash.empty?
         out = rput "execute"
-        puts out if out != "" and  !application.options.silent
-        info "Execute output: #{out.inspect}"
+        out.each { |std, s|
+          case std
+            when "stdout"
+              print s unless application.options.silent
+              type = ""
+            when "stderr"
+              $stderr.print s unless application.options.silent
+              type = "stderr: "
+            else
+              raise "unknown outputtype: #{std} returned from execute '#{url}'"
+          end
+          s.split.each {|str| info "#{type}#{str}" }
+        }
         return
       end
       application.enhance_with_matching_rule(name) if @actions.empty?

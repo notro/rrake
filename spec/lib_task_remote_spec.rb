@@ -50,19 +50,32 @@ describe "Rake::Task with remote" do
     expect{ t.execute :a=>true }.to raise_error RuntimeError
   end
   
-  it "should execute task" do
+  it "should execute task and print to stdout" do
     remote "127.0.0.1"
     t = task :task1_execute do |t|
       t.fatal "task1_log_message"
-      puts "task1_puts_message"
+      puts "task1_stdout_puts_message"
     end
     out = capture_stdout { 
       t.invoke
     }
-    out.should =~ /task1_puts_message/
+    out.should =~ /task1_stdout_puts_message/
     msg = TestServer.msg
     msg.should =~ /FATAL.*task1_log_message/
-    msg.should =~ /INFO.*task1_puts_message/
+    msg.should =~ /INFO.*task1_stdout_puts_message/
+  end
+  
+  it "should execute task and print to stderr" do
+    remote "127.0.0.1"
+    t = task :task2_execute do |t|
+      $stderr.puts "task1_stderr_puts_message"
+    end
+    out = capture_stderr { 
+      t.invoke
+    }
+    out.should =~ /task1_stderr_puts_message/
+    msg = TestServer.msg
+    msg.should =~ /INFO.*stderr.*task1_stderr_puts_message/
   end
   
   it "should get task timestamp" do

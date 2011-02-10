@@ -61,6 +61,7 @@ require 'rrake/name_space'
 require 'rrake/task_manager'
 require 'rrake/application'
 require 'rrake/environment'
+require 'rrake/capture_out'
 require 'rrake/api'
 require 'rrake/client'
 
