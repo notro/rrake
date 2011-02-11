@@ -101,7 +101,8 @@ class API < Grape::API
       setup
       Rake.application.debug2 "  data: #{body.inspect}"
       error!("400 Bad request: missing block", 400) unless body["block"]
-      task.override_needed_block = JSON.parse body["block"]
+      block = Rake.module_eval "Proc.new #{JSON.parse(body["block"], :create_additions=>false)['data'][0]}"
+      task.override_needed_block = block
       log_return true
     end
     
@@ -115,8 +116,11 @@ class API < Grape::API
       Rake.application.debug2 "  data: #{body.inspect}"
       error!("400 Bad request: missing klass", 400) unless body["klass"]
       klass = eval "#{body["klass"]}"
-      block = body["block"] ? JSON.parse(body["block"]) : nil
-      task = Rake.application.define_task(klass, params[:name], &block)
+      task = Rake.application.define_task(klass, params[:name])
+      if body["block"]
+        block = Rake.module_eval "Proc.new #{JSON.parse(body["block"], :create_additions=>false)['data'][0]}"
+        task.enhance nil, &block
+      end
       log_return task.inspect
     end
     
