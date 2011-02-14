@@ -95,7 +95,8 @@ module Rake
       @locations = []
       @override_needed_block = nil
       @conditions = {}
-      self.remote = @application.respond_to?(:options) ? @application.options.remoteurl : nil
+      self.remote = @application.options.remoteurl if @application.respond_to?(:options)
+      self.remote ||= ENV['RAKE_REMOTE']
       @url = nil
       self.log_context = @application.respond_to?(:name) ? @application.name : ''
       debug2 "Created task: #{@name}"
@@ -387,7 +388,9 @@ module Rake
       rescue URI::InvalidURIError
         fail ArgumentError, "illegal value: '#{value}'"
       end
-      r.port = application.options.port unless value =~ /:\d+/
+      if application.respond_to?(:options)
+        r.port = application.options.port unless value =~ /:\d+/
+      end
       @remote = r.to_s
     end
 
