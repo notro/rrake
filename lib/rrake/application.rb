@@ -68,7 +68,6 @@ module Rake
       standard_exception_handling do
         init
         load_rakefile
-        clear_remote_servers
         top_level
       end
     end
