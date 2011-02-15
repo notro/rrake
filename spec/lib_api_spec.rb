@@ -20,7 +20,7 @@ describe Rake::API do
   end
   
   before :each do
-    Rake.application.clear
+    ::Rake.application.clear
     rput "clear"
     TestServer.msg
   end
