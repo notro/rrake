@@ -66,7 +66,7 @@ class API < Grape::API
 
   get "tasks" do
     setup
-    log_return Rake.application.tasks
+    log_return Rake.application.tasks.collect { |t| t.name }
   end
     
   resource "task/:name" do

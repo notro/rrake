@@ -136,5 +136,11 @@ describe Rake::API do
     rpost("task/task_do_exist", {:klass => ::Rake::Task.to_s})
     rput("task/task_do_exist/delete").should == true
   end
+  
+  it "tasks should return an array of task names" do
+    rpost("task/task_1", {:klass => ::Rake::Task.to_s})
+    rpost("task/task_2", {:klass => ::Rake::Task.to_s})
+    rget("tasks").should == ["task_1", "task_2"]
+  end
 
 end
