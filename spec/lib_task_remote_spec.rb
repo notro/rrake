@@ -25,11 +25,27 @@ describe "Rake::Task with remote" do
     end
   end
   
-  it "should create task" do
-    remote "127.0.0.1"
-    t = task :task1_create
+  ["task",
+   "task1_create",
+   "task.1",
+   "ns:task",
+  ].each { |test|
+    it "should create task: #{test}" do
+      remote "127.0.0.1"
+      t = task test
+      t.invoke
+      TestServer.msg.should =~ /Created task.*#{test}/
+    end
+  }
+  
+  it "should create namespace:task" do
+    t = nil
+    namespace "namespace" do
+      remote "127.0.0.1"
+      t = task :task1_create
+    end
     t.invoke
-    TestServer.msg.should =~ /Created task.*task1_create/
+    TestServer.msg.should =~ /Created task.*namespace:task1_create/
   end
   
   it "Rake.application.clear should clear remote server" do

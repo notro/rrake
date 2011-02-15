@@ -12,7 +12,7 @@ class API < Grape::API
       Rake.application.log_context = params["trace"] if params["trace"]
       Rake.application.info "#{env["REQUEST_METHOD"]} #{env["REQUEST_URI"]}"
       if params[:name]
-        params[:name] = CGI::unescape(params[:name])
+        params[:name] = URI.unescape(params[:name])
         params["name"] = params[:name]
       end
     end

@@ -17,6 +17,8 @@ module Rake
     include Logging
     include RestClient
     
+    UNSAFE_ESCAPING_DOT = Regexp.new("[^#{::URI::PATTERN::UNRESERVED.gsub(".", "")}#{::URI::PATTERN::RESERVED}]", false, 'N') # :nodoc:
+    
     # List of prerequisites for a task.
     attr_reader :prerequisites
 
@@ -409,7 +411,7 @@ module Rake
         r.port = application.options.port unless value =~ /:\d+/
       end
       @remote = r.to_s
-      @url = "#{@remote}/api/v1/task/#{CGI::escape(name)}"
+      @url = "#{@remote}/api/v1/task/#{URI.escape(name, UNSAFE_ESCAPING_DOT)}"
     end
 
     def create_remote_task
