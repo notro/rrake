@@ -165,7 +165,9 @@ module Rake
 
     # Delete a task. Return whether or not the task existed.
     def delete_task(name)
-      @tasks.delete(name.to_s) ? true : false
+      ret = @tasks.delete(name.to_s) ? true : false
+      debug2 "Deleted task: #{name}" if ret
+      ret
     end
 
     # Clear remote servers currently defined in the tasks.

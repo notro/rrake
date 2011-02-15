@@ -51,6 +51,12 @@ class API < Grape::API
       @task.log_context = params["trace"] if params["trace"]
       @task
     end
+    
+    def proc_from_json(str)
+      proc_str = JSON.parse(str, :create_additions=>false)
+      Rake.module_eval "Proc.new #{proc_str['data'][0]}", proc_str['data'][1], proc_str['data'][2]
+    end
+    
   end
   
   put "clear" do
@@ -89,6 +95,16 @@ class API < Grape::API
       log_return task.investigation
     end
     
+    get "actions" do
+      setup
+      log_return task.actions.collect { |a| a.to_json }
+    end
+    
+    put "delete" do
+      setup
+      log_return Rake.application.delete_task params[:name]
+    end
+    
     put "execute" do
       setup
       capture = Rake::CaptureOutput.new do
@@ -97,13 +113,22 @@ class API < Grape::API
       log_return capture.output
     end
     
+    post "enhance" do
+      setup
+      Rake.application.debug2 "  data: #{body.inspect}"
+      error!("400 Bad request: missing block", 400) unless body["block"]
+      block = proc_from_json body["block"]
+      task.enhance nil, &block
+      log_return true
+    end
+    
     post "override_needed" do
       setup
       Rake.application.debug2 "  data: #{body.inspect}"
       error!("400 Bad request: missing block", 400) unless body["block"]
-      block = Rake.module_eval "Proc.new #{JSON.parse(body["block"], :create_additions=>false)['data'][0]}"
+      block = proc_from_json body["block"]
       task.override_needed_block = block
-      log_return true
+      log_return task.override_needed_block.to_json
     end
     
     get "/" do
@@ -117,10 +142,6 @@ class API < Grape::API
       error!("400 Bad request: missing klass", 400) unless body["klass"]
       klass = eval "#{body["klass"]}"
       task = Rake.application.define_task(klass, params[:name])
-      if body["block"]
-        block = Rake.module_eval "Proc.new #{JSON.parse(body["block"], :create_additions=>false)['data'][0]}"
-        task.enhance nil, &block
-      end
       log_return task.inspect
     end
     

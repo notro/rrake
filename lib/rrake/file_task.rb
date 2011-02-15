@@ -26,7 +26,8 @@ module Rake
     end
 
     def file_exist?
-      if self.url
+      if remote
+        create_remote_task
         rget "file_exist"
       else
         File.exist?(name)
@@ -34,7 +35,8 @@ module Rake
     end
     
     def file_mtime
-      if self.url
+      if remote
+        create_remote_task
         Time.at rget "file_mtime"
       else
         File.mtime(name.to_s)

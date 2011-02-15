@@ -50,13 +50,23 @@ describe Rake::API do
     rget("task/task1").include?(response).should == true
   end
   
+  it "should enhance task with action" do
+    t = task :task_a do |t|
+      puts "task_a_std_out_puts_message"
+    end
+    rpost("task/#{t.name}", {:klass => t.class.to_s})
+    rpost("task/#{t.name}/enhance", {:block => t.actions.first.to_json})
+    rget("task/#{t.name}/actions").first.should include "task_a_std_out_puts_message"
+  end
+  
   it "should execute task" do
     t = task :task1 do |t|
       t.fatal "task1_log_message"
       puts "task1_std_out_puts_message"
       $stderr.puts "task1_stderr_puts_message"
     end
-    rpost("task/#{t.name}", {:klass => t.class.to_s, :block => t.actions.first.to_json})
+    rpost("task/#{t.name}", {:klass => t.class.to_s})
+    rpost("task/#{t.name}/enhance", {:block => t.actions.first.to_json})
     output = rput("task/#{t.name}/execute")
     output.should == [["stdout", "task1_std_out_puts_message\n"], ["stderr", "task1_stderr_puts_message\n"]]
     TestServer.msg.should =~ /FATAL.*task1_log_message/
@@ -79,7 +89,8 @@ describe Rake::API do
     t = task :task1
     t.override_needed do 99 end
     rpost("task/#{t.name}", {:klass => t.class.to_s})
-    rpost("task/task1/override_needed", {:block => t.instance_variable_get("@override_needed_block").to_json})
+    r = rpost("task/task1/override_needed", {:block => t.override_needed_block.to_json})
+    r.should include "99"
     needed = rget("task/task1/needed")
     needed.should == 99
   end
@@ -88,6 +99,15 @@ describe Rake::API do
     rpost("task/task1", {:klass => ::Rake::Task.to_s})
     msg = rget("task/task1/investigation")
     msg.should =~/Investigating.*task1/
+  end
+  
+  it "delete_task should return false if the task does not exist" do
+    rput("task/task_does_not_exist/delete").should == false
+  end
+  
+  it "delete_task should return true if the task exist" do
+    rpost("task/task_do_exist", {:klass => ::Rake::Task.to_s})
+    rput("task/task_do_exist/delete").should == true
   end
 
 end

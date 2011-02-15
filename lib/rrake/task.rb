@@ -44,10 +44,13 @@ module Rake
     # List of conditions attached to a task.
     attr_reader :conditions
 
-    attr_writer :override_needed_block # :nodoc:
+    attr_accessor :override_needed_block # :nodoc:
 
     # Remote host on which to execute this task
     attr_reader :remote
+
+    # Url to the remote task
+    attr_reader :url
 
     # Return task name
     def to_s
@@ -95,11 +98,13 @@ module Rake
       @locations = []
       @override_needed_block = nil
       @conditions = {}
-      self.remote = @application.options.remoteurl if @application.respond_to?(:options)
-      self.remote ||= ENV['RAKE_REMOTE']
+      @remote = nil
       @url = nil
+      @remote_task_created = false
       self.log_context = @application.respond_to?(:name) ? @application.name : ''
       debug2 "Created task: #{@name}"
+      self.remote = @application.options.remoteurl if @application.respond_to?(:options)
+      self.remote ||= ENV['RAKE_REMOTE']
     end
 
     # Application log object
@@ -111,6 +116,11 @@ module Rake
     def enhance(deps=nil, &block)
       @prerequisites |= deps if deps
       @actions << block if block_given?
+      if @remote and block_given?
+        create_remote_task
+        rpost("enhance", {:block=>block.to_json})
+        debug2 "Added action to remote task '#{@url}' :: #{block.to_json.inspect}"
+      end
       self
     end
 
@@ -181,15 +191,6 @@ module Rake
       new_chain = InvocationChain.append(self, invocation_chain)
       self.log_context = new_chain.to_s[7..-1]
       @lock.synchronize do
-        if @remote and @url.nil?
-          @url = "#{remote}/api/v1/task/#{CGI::escape(name)}"
-          rpost("", :klass => self.class.to_s)
-          rpost("override_needed", {:block => @override_needed_block.to_json}) if @override_needed_block
-          @actions.each { |action|
-            rpost("", {:klass => self.class.to_s, :block=>action.to_json})
-          }
-          debug2 "created '#{@url}'"
-        end
         debug "invoke #{name} #{format_trace_flags}"
         if application.options.trace
           puts "** Invoke #{name} #{format_trace_flags}"
@@ -232,7 +233,7 @@ module Rake
     # (task arguments is not supported for remote tasks)
     def execute(args=nil) # TODO: implement argument handling for remote tasks
       args ||= EMPTY_TASK_ARGS
-      debug "Execute #{self.url ? '' : 'local '}#{application.options.dryrun ? '(dry run) ' : ''}#{name}#{self.url ? '(' + self.url + ')' : ''}"
+      debug "Execute #{remote ? '' : 'local '}#{application.options.dryrun ? '(dry run) ' : ''}#{name}#{remote ? '(' + url + ')' : ''}"
       if application.options.dryrun
         puts "** Execute (dry run) #{name}"
         return
@@ -240,8 +241,9 @@ module Rake
       if application.options.trace
         puts "** Execute #{name}"
       end
-      if self.url
+      if remote
         raise "task arguments is not supported for remote tasks" unless args.nil? or args.to_hash.empty?
+        create_remote_task
         out = rput "execute"
         out.each { |std, s|
           case std
@@ -283,13 +285,19 @@ module Rake
     #   end
     def override_needed(&block)
       @override_needed_block = block
+      if remote
+        create_remote_task
+        rpost("override_needed", {:block => block.to_json})
+        debug2 "override_needed on remote task '#{@url}' :: #{block.to_json.inspect}"
+      end
     end
 
     # Is this task needed?
     #
     # Return true if not override_needed has been used or the task has been conditioned.
     def needed?
-      if self.url
+      if remote
+        create_remote_task
         rget "needed"
       elsif @override_needed_block != nil
         @override_needed_block.call(self)
@@ -318,8 +326,9 @@ module Rake
     def timestamp
       t = prerequisite_tasks.collect { |pre| pre.timestamp }.max
       return t if t
-      if self.url
-          Time.at rget("timestamp")
+      if remote
+        create_remote_task
+        Time.at rget("timestamp")
       else
         Time.now
       end
@@ -392,13 +401,17 @@ module Rake
         r.port = application.options.port unless value =~ /:\d+/
       end
       @remote = r.to_s
+      @url = "#{@remote}/api/v1/task/#{CGI::escape(name)}"
     end
 
-    # Full url to remote task
-    def url
-      return @url if @url
-      raise "remote task must be invoked before use" if @remote
-      nil
+    def create_remote_task
+      raise "can't create remote task, #remote is not set" unless remote
+      unless @remote_task_created
+        rput "delete"  # Make sure the task does not exist (from previous runs)
+        rpost("", :klass => self.class.to_s)
+        debug2 "Created remote task: '#{url}'"
+        @remote_task_created = true
+      end
     end
 
     # Set the names of the arguments for this task. +args+ should be
