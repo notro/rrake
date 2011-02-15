@@ -107,10 +107,18 @@ class API < Grape::API
     
     put "execute" do
       setup
+      exit_status = [false, nil]
+      exception = [false, nil]
       capture = Rake::CaptureOutput.new do
-        task.execute
+        begin
+          task.execute
+        rescue SystemExit => e
+          exit_status = [true, e.status]
+        rescue Exception => e
+          exception = [true, e.class.to_s, e.message, e.backtrace]
+        end
       end
-      log_return capture.output
+      log_return "exception" => exception, "exit_status" => exit_status, "output" => capture.output
     end
     
     post "enhance" do

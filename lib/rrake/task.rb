@@ -244,8 +244,16 @@ module Rake
       if remote
         raise "task arguments is not supported for remote tasks" unless args.nil? or args.to_hash.empty?
         create_remote_task
-        out = rput "execute"
-        out.each { |std, s|
+        hash = rput "execute"
+        exception = hash["exception"]
+        if exception[0]
+          fatal "Error executing remote task #{url}. #{exception[1]} => #{exception[2]}"
+          debug "Stack trace: #{exception[3]}"
+          raise eval(exception[1]), exception[2]
+        end
+        exit_status = hash["exit_status"]
+        exit exit_status[1] if exit_status[0]
+        hash["output"].each { |std, s|
           case std
             when "stdout"
               print s unless application.options.silent

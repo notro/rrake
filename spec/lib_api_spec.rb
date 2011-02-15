@@ -20,6 +20,7 @@ describe Rake::API do
   end
   
   before :each do
+    Rake.application.clear
     rput "clear"
     TestServer.msg
   end
@@ -67,9 +68,35 @@ describe Rake::API do
     end
     rpost("task/#{t.name}", {:klass => t.class.to_s})
     rpost("task/#{t.name}/enhance", {:block => t.actions.first.to_json})
-    output = rput("task/#{t.name}/execute")
-    output.should == [["stdout", "task1_std_out_puts_message\n"], ["stderr", "task1_stderr_puts_message\n"]]
+    hash = rput("task/#{t.name}/execute")
+    hash["output"].should == [["stdout", "task1_std_out_puts_message\n"], ["stderr", "task1_stderr_puts_message\n"]]
     TestServer.msg.should =~ /FATAL.*task1_log_message/
+  end
+  
+  it "should execute task with exit" do
+    t = task :task1 do |t|
+      exit 5
+    end
+    rpost("task/#{t.name}", {:klass => t.class.to_s})
+    rpost("task/#{t.name}/enhance", {:block => t.actions.first.to_json})
+    hash = rput("task/#{t.name}/execute")
+    hash["exception"].should == [false, nil]
+    hash["exit_status"].should == [true, 5]
+    hash["output"].should == []
+  end
+  
+  it "should execute task which raises exception" do
+    t = task :task1 do |t|
+      raise LoadError, "err"
+    end
+    rpost("task/#{t.name}", {:klass => t.class.to_s})
+    rpost("task/#{t.name}/enhance", {:block => t.actions.first.to_json})
+    hash = rput("task/#{t.name}/execute")
+    hash["exception"][0].should == true
+    hash["exception"][1].should == "LoadError"
+    hash["exception"][2].should == "err"
+    hash["exit_status"].should == [false, nil]
+    hash["output"].should == []
   end
   
   it "should get task timestamp" do
