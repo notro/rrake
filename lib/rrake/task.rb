@@ -17,7 +17,7 @@ module Rake
     include Logging
     include RestClient
     
-    UNSAFE_ESCAPING_DOT = Regexp.new("[^#{::URI::PATTERN::UNRESERVED.gsub(".", "")}#{::URI::PATTERN::RESERVED}]", false, 'N') # :nodoc:
+    UNSAFE_ESCAPING_DOT = Regexp.new("[^#{::URI::PATTERN::UNRESERVED.gsub(".", "")}#{::URI::PATTERN::RESERVED}]", false) # :nodoc:
     
     DEFAULT_ENV_VAR_EXCLUDE_FILTER = 
       /^(GEM.*|TERM|SHELL|XDG.*|IRB.*|SSH.*|SUDO.*|OLDPWD|RUBY.*|ruby.*|USER|LS_COLORS|_.*|rvm.*|MAIL|PATH|PWD|LANG|SHLVL|HOME|LOGNAME|LESS.*|LINES|COLUMNS|RACK.*)/
