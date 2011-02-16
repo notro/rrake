@@ -131,9 +131,13 @@ class API < Grape::API
     post "enhance" do
       setup
       Rake.application.debug2 "  data: #{body.inspect}"
-      error!("400 Bad request: missing block", 400) unless body["block"]
-      block = proc_from_json body["block"]
-      task.enhance nil, &block
+      if body["block"]
+        block = proc_from_json body["block"]
+        task.enhance nil, &block
+      end
+      if body["deps"]
+        task.enhance body["deps"]
+      end
       log_return true
     end
     

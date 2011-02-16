@@ -132,4 +132,16 @@ describe "Rake::Task with remote" do
     out.should =~ /-- 123456789 --/
     ENV["TEST_RAKE_ENV"] = nil
   end
+  
+  it "should pass prerequisites" do
+    remote "127.0.0.1"
+    task :task2_pre
+    t = task :task_pre => [:task2_pre] do |t|
+      puts "-- #{t.prerequisites.first} --"
+    end
+    out = capture_stdout { 
+      t.invoke
+    }
+    out.should =~ /-- task2_pre --/
+  end
 end

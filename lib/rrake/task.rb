@@ -125,10 +125,16 @@ module Rake
     def enhance(deps=nil, &block)
       @prerequisites |= deps if deps
       @actions << block if block_given?
-      if @remote and block_given?
+      if @remote and ((deps and !deps.empty?) or block_given?)
         create_remote_task
-        rpost("enhance", {:block=>block.to_json})
-        debug2 "Added action to remote task '#{@url}' :: #{block.to_json.inspect}"
+        if deps
+          rpost("enhance", {"deps"=>deps})
+          debug2 "Added prerequisites to remote task '#{@url}' :: #{deps.inspect}"
+        end
+        if block_given?
+          rpost("enhance", {:block=>block.to_json})
+          debug2 "Added action to remote task '#{@url}' :: #{block.to_json.inspect}"
+        end
       end
       self
     end
