@@ -19,6 +19,9 @@ module Rake
     
     UNSAFE_ESCAPING_DOT = Regexp.new("[^#{::URI::PATTERN::UNRESERVED.gsub(".", "")}#{::URI::PATTERN::RESERVED}]", false, 'N') # :nodoc:
     
+    DEFAULT_ENV_VAR_EXCLUDE_FILTER = 
+      /^(GEM.*|TERM|SHELL|XDG.*|IRB.*|SSH.*|SUDO.*|OLDPWD|RUBY.*|ruby.*|USER|LS_COLORS|_.*|rvm.*|MAIL|PATH|PWD|LANG|SHLVL|HOME|LOGNAME|LESS.*|LINES|COLUMNS|RACK.*)/
+    
     # List of prerequisites for a task.
     attr_reader :prerequisites
 
@@ -54,6 +57,9 @@ module Rake
     # Url to the remote task
     attr_reader :url
 
+    # Used to filter out environment variables sent to a remote task on execution.
+    attr_accessor :env_var_exclude_filter
+    
     # Return task name
     def to_s
       name
@@ -103,6 +109,7 @@ module Rake
       @remote = nil
       @url = nil
       @remote_task_created = false
+      @env_var_exclude_filter = DEFAULT_ENV_VAR_EXCLUDE_FILTER
       self.log_context = @application.respond_to?(:name) ? @application.name : ''
       debug2 "Created task: #{@name}"
       self.remote = @application.options.remoteurl if @application.respond_to?(:options)
@@ -246,7 +253,8 @@ module Rake
       if remote
         raise "task arguments is not supported for remote tasks" unless args.nil? or args.to_hash.empty?
         create_remote_task
-        hash = rput "execute"
+        env = ENV.to_hash.reject { |k,v| k =~ env_var_exclude_filter }
+        hash = rput("execute", {"env_var" => env})
         exception = hash["exception"]
         if exception[0]
           fatal "Error executing remote task #{url}. #{exception[1]} => #{exception[2]}"

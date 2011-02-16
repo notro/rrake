@@ -107,6 +107,10 @@ class API < Grape::API
     
     put "execute" do
       setup
+      if body["env_var"]
+        env = ENV.to_hash
+        body["env_var"].each { |k,v| ENV[k] = v }
+      end
       exit_status = [false, nil]
       exception = [false, nil]
       capture = Rake::CaptureOutput.new do
@@ -117,6 +121,9 @@ class API < Grape::API
         rescue Exception => e
           exception = [true, e.class.to_s, e.message, e.backtrace]
         end
+      end
+      if body["env_var"]
+        body["env_var"].each_key { |k| ENV[k] = env[k] }
       end
       log_return "exception" => exception, "exit_status" => exit_status, "output" => capture.output
     end

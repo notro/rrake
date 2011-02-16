@@ -120,4 +120,16 @@ describe "Rake::Task with remote" do
     t.needed?.should == 99
   end
   
+  it "should pass in environment variables on remote execution" do
+    ENV["TEST_RAKE_ENV"] = "123456789"
+    remote "127.0.0.1"
+    t = task :task_get_env_var do |t|
+      puts "-- #{ENV["TEST_RAKE_ENV"]} --"
+    end
+    out = capture_stdout { 
+      t.invoke
+    }
+    out.should =~ /-- 123456789 --/
+    ENV["TEST_RAKE_ENV"] = nil
+  end
 end
