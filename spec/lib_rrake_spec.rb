@@ -64,9 +64,11 @@ describe 'rrake commandline' do
   end
   
   it '--log should accept filename' do
-    ::Rake.rm_rf "testdata/rrake.log", :verbose=>false
+    ::Rake.rm_f "testdata/rrake.log", :verbose=>false
     lambda {  command_line('--log', 'testdata/rrake.log:info') }.should_not raise_error RuntimeError
     @app.log.outputters.first.class.should == ::Log4r::FileOutputter
+    @app.log.outputters.first.close
+    ::Rake.rm "testdata/rrake.log", :verbose=>false
   end
   
   it '--log should not accept filename in unwritable directory' do
@@ -74,9 +76,11 @@ describe 'rrake commandline' do
   end
   
   it '--log should accept multiple destinations' do
-    ::Rake.rm_rf "testdata/rrake.log", :verbose=>false
+    ::Rake.rm_f "testdata/rrake.log", :verbose=>false
     lambda {  command_line('--log', 'stdout:info,stderr:error,testdata/rrake.log:info') }.should_not raise_error RuntimeError
     @app.log.outputters.collect { |o| o.class }.should include(::Log4r::StdoutOutputter, ::Log4r::StderrOutputter, ::Log4r::FileOutputter)
+    @app.log.outputters.last.close
+    ::Rake.rm "testdata/rrake.log", :verbose=>false 
   end
   
   it '--port should not accept illegal number' do

@@ -64,16 +64,17 @@ class RRakeServer
   attr_reader :logfile, :pid
 
   def initialize
-    mkdir_p 'testdata'
-    rm_f 'testdata/server.log'
-    touch 'testdata/server.log'
+    logfile = 'testserver/server.log'
+    mkdir_p File.dirname logfile
+    rm_f logfile
+    touch logfile
 
     @verbose = ! ENV['VERBOSE'].nil?
     env = @verbose ? "development" : "test"
-    cmd = "#{RUBY} -Ilib bin/rrake --log testdata/server.log:all --server --host 127.0.0.1 -s webrick -E #{env}"
+    cmd = "#{RUBY} -Ilib bin/rrake --log #{logfile}:all --server --host 127.0.0.1 -s webrick -E #{env}"
     puts "Starting server: #{cmd}\n\n" if @verbose
     @pipe = IO.popen(cmd)
-    @logfile = File.open "testdata/server.log"
+    @logfile = File.open logfile
     timeout = 0
     msg = ''
     chars = %w{ | / - \\ }

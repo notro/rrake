@@ -28,13 +28,15 @@ describe ::Rake::Logging do
   end
   
   it 'logging to file should work' do
-    ::Rake.rm_rf "testdata/rrake.log", :verbose=>false
+    ::Rake.rm_f "testdata/rrake.log", :verbose=>false
     @out = capture_stdout { 
       command_line('--log', 'testdata/rrake.log:info')
     }
     @out.should_not include ' DEBUG '
     @app.info 'logging2file'
-    File.new('testdata/rrake.log', 'r').read.should include('logging2file')
+    @app.log.outputters.first.close
+    File.open('testdata/rrake.log', 'r') { |file| file.read.should include('logging2file') }
+    ::Rake.rm "testdata/rrake.log", :verbose=>false
   end
   
   if !::Rake::Win32.windows?
