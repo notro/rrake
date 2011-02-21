@@ -125,6 +125,14 @@ pending "This currently fails on ruby 1.9. It returns the surrounding block."
       @block.source.split.join(' ').should == "do false end"
     end
     
+    it "should handle hash assignment {:a=>1} in code" do
+pending "This currently fails. It ends at the } in the hash assignment."
+      p = Proc.new do
+        hash = {:a=>1}
+      end
+      p.source.split.join(' ').should == "do hash = {:a=>1} end"
+    end
+    
     describe "#lines" do
       it "should be correct for one line proc" do
         before = __LINE__
