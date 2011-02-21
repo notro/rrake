@@ -258,7 +258,8 @@ module Rake
       if remote
         create_remote_task
         env = ENV.to_hash.reject { |k,v| k =~ env_var_exclude_filter }
-        hash = rput("execute", {"env_var" => env, "args" => args.to_hash})
+        args_remote = args.respond_to?(:to_hash) ? args.to_hash : args
+        hash = rput("execute", {"env_var" => env, "args" => args_remote})
         exception = hash["exception"]
         if exception[0]
           fatal "Error executing remote task #{url}. #{exception[1]} => #{exception[2]}"

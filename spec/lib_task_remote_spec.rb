@@ -8,6 +8,7 @@ describe "Rake::Task with remote" do
       puts "\n--------------------------------------------------------------------"
       puts "  Test: #{File.basename __FILE__}\n\n"
     end
+    ::Rake::TaskManager.record_task_metadata = true
     TestServer.start
   end
   
@@ -23,6 +24,7 @@ describe "Rake::Task with remote" do
       puts TestServer.msg_all
       puts "--------------------------------------------------------------------"
     end
+    ::Rake::TaskManager.record_task_metadata = false
   end
   
   ["task",
@@ -149,6 +151,27 @@ describe "Rake::Task with remote" do
   end
 
 # Rake tests that need tweaking to run  
+
+# test/lib/task_test.rb
+# TestTask
+  it "test_create" do
+    arg = nil
+    remote "127.0.0.1"
+    t = task(:name) do |task| puts task.name end
+    t.name.should == "name"
+    t.prerequisites.should == []
+    t.needed?.should == true
+    out = capture_stdout { 
+      t.execute(0)
+    }
+    out.should == "name\n"
+    t.source.should == nil
+    t.sources.should == []
+    t.locations.size.should == 1
+    t.locations.first.should =~/#{Regexp.quote(__FILE__)}/
+  end
+
+# TestTaskWithArguments
   it "test_arg_list_is_empty_if_no_args_given" do
     remote "127.0.0.1"
     t = task(:t) do |tt, args|

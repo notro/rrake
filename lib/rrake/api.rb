@@ -112,7 +112,7 @@ class API < Grape::API
         body["env_var"].each { |k,v| ENV[k] = v }
       end
       if body["args"]
-        args = Rake::TaskArguments.new(body["args"].keys, body["args"].values)
+        args = body["args"].kind_of?(Hash) ? Rake::TaskArguments.new(body["args"].keys, body["args"].values) : body["args"]
       else
         args = nil
       end
