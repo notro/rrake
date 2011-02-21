@@ -19,6 +19,7 @@ skip :TestApplication, :test_good_run
 #
 # test/lib/task_test.rb
 
+# TestTask
 # NameError: undefined local variable or method `runlist' for Rake:Module
 skip :TestTask, :test_can_double_invoke_with_reenable
 
@@ -45,40 +46,36 @@ skip :TestTask, :test_timestamp_returns_now_if_all_prereqs_have_no_times
 skip :TestTask, :test_invoke_with_circular_dependencies
 
 
-
-# Exception raised:
-# Class: <RuntimeError>
-# Message: <"task arguments is not supported for remote tasks">
-skip :TestTaskWithArguments, :test_actions_of_various_arity_are_ok_with_args
-
-# NoMethodError: undefined method `assert_equal' for Rake:Module
+# TestTaskWithArguments (these are implemented as rspecs)
+# assert_equal in task action
 skip :TestTaskWithArguments, :test_arg_list_is_empty_if_no_args_given
 
-# RuntimeError: task arguments is not supported for remote tasks
-skip :TestTaskWithArguments, :test_args_not_passed_if_no_prereq_names
-
-# RuntimeError: task arguments is not supported for remote tasks
-skip :TestTaskWithArguments, :test_arguments_are_passed_to_all_blocks
-
-# RuntimeError: task arguments is not supported for remote tasks
-skip :TestTaskWithArguments, :test_arguments_are_passed_to_block
-
-# RuntimeError: task arguments is not supported for remote tasks
-skip :TestTaskWithArguments, :test_extra_parameters_are_ignored
-
-# RuntimeError: task arguments is not supported for remote tasks
-skip :TestTaskWithArguments, :test_named_args_are_passed_to_prereqs
-
-# RuntimeError: task arguments is not supported for remote tasks
+# assert_equal in task action
 skip :TestTaskWithArguments, :test_tasks_can_access_arguments_as_hash
 
-# Fails on ruby 1.9
-# NoMethodError: undefined method `assert_equal' for Rake:Module
-skip :TestTaskWithArguments, :test_args_not_passed_if_no_arg_names
+# Task actions need access to local variable 'notes' in test
+skip :TestTaskWithArguments, :test_actions_of_various_arity_are_ok_with_args
 
-# Fails on ruby 1.9
-# NoMethodError: undefined method `assert_equal' for Rake:Module
+# assert_equal in task action
+skip :TestTaskWithArguments, :test_arguments_are_passed_to_block
+
+# assert_equal in task action
+skip :TestTaskWithArguments, :test_extra_parameters_are_ignored
+
+# assert_equal in task action
+skip :TestTaskWithArguments, :test_arguments_are_passed_to_all_blocks
+
+# fails because action has curly brackets which is not supported
 skip :TestTaskWithArguments, :test_block_with_no_parameters_is_ok
+
+# Task actions need access to local variable 'value' in test
+skip :TestTaskWithArguments, :test_named_args_are_passed_to_prereqs
+
+# assert_equal in task action
+skip :TestTaskWithArguments, :test_args_not_passed_if_no_prereq_names
+
+# assert_equal in task action
+skip :TestTaskWithArguments, :test_args_not_passed_if_no_arg_names
 
 
 

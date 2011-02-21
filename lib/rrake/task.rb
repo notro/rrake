@@ -245,8 +245,7 @@ module Rake
     private :format_trace_flags
 
     # Execute the actions associated with this task. 
-    # (task arguments is not supported for remote tasks)
-    def execute(args=nil) # TODO: implement argument handling for remote tasks
+    def execute(args=nil)
       args ||= EMPTY_TASK_ARGS
       debug "Execute #{remote ? '' : 'local '}#{application.options.dryrun ? '(dry run) ' : ''}#{name}#{remote ? '(' + url + ')' : ''}"
       if application.options.dryrun
@@ -257,10 +256,9 @@ module Rake
         puts "** Execute #{name}"
       end
       if remote
-        raise "task arguments is not supported for remote tasks" unless args.nil? or args.to_hash.empty?
         create_remote_task
         env = ENV.to_hash.reject { |k,v| k =~ env_var_exclude_filter }
-        hash = rput("execute", {"env_var" => env})
+        hash = rput("execute", {"env_var" => env, "args" => args.to_hash})
         exception = hash["exception"]
         if exception[0]
           fatal "Error executing remote task #{url}. #{exception[1]} => #{exception[2]}"

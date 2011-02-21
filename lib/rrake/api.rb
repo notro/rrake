@@ -111,11 +111,16 @@ class API < Grape::API
         env = ENV.to_hash
         body["env_var"].each { |k,v| ENV[k] = v }
       end
+      if body["args"]
+        args = Rake::TaskArguments.new(body["args"].keys, body["args"].values)
+      else
+        args = nil
+      end
       exit_status = [false, nil]
       exception = [false, nil]
       capture = Rake::CaptureOutput.new do
         begin
-          task.execute
+          task.execute args
         rescue SystemExit => e
           exit_status = [true, e.status]
         rescue Exception => e

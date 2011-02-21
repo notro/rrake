@@ -57,15 +57,6 @@ describe "Rake::Task with remote" do
     expect{ Nestful.get url }.to raise_error Nestful::ResourceNotFound
   end
   
-  it "execute task currently fails with task arguments" do
-    remote "127.0.0.1"
-    t = task :task1_fail do |t|
-      false
-    end
-    t.invoke
-    expect{ t.execute :a=>true }.to raise_error RuntimeError
-  end
-  
   it "should execute task and print to stdout" do
     remote "127.0.0.1"
     t = task :task1_execute do |t|
@@ -92,6 +83,18 @@ describe "Rake::Task with remote" do
     out.should =~ /task1_stderr_puts_message/
     msg = TestServer.msg
     msg.should =~ /INFO.*stderr.*task1_stderr_puts_message/
+  end
+  
+  it "should execute task with task arguments" do
+    remote "127.0.0.1"
+    t = task :task1_arg, [:first_name, :last_name] do |t, args|
+      puts "First name is #{args.first_name}"
+      puts "Last  name is #{args.last_name}"
+    end
+    out = capture_stdout { 
+      t.invoke "John", "Doe"
+    }
+    out.should =~ /First name is John\nLast  name is Doe/
   end
   
   it "should get task timestamp" do
@@ -143,5 +146,148 @@ describe "Rake::Task with remote" do
       t.invoke
     }
     out.should =~ /-- task2_pre --/
+  end
+
+# Rake tests that need tweaking to run  
+  it "test_arg_list_is_empty_if_no_args_given" do
+    remote "127.0.0.1"
+    t = task(:t) do |tt, args|
+      puts "args is empty" if args.to_hash.empty?
+    end
+    out = capture_stdout { 
+      t.invoke(1, 2, 3)
+    }
+    out.should =~ /args is empty/
+  end
+
+  it "test_tasks_can_access_arguments_as_hash" do
+    remote "127.0.0.1"
+    t = task :t, :a, :b, :c do |tt, args|
+      # Proc#source can't handle {:a=>1}
+      hash = Hash.new
+      hash[:a] = 1
+      hash[:b] = 2
+      hash[:c] = 3
+      if args.to_hash == hash then
+        puts "to_hash" 
+      end
+      puts "argsa" if args[:a] == 1
+      puts "argsb" if args[:b] == 2
+      puts "argsc" if args[:c] == 3
+      puts "args_a" if args.a == 1
+      puts "args_b" if args.b == 2
+      puts "args_c" if args.c == 3
+    end
+    out = capture_stdout { 
+      t.invoke(1, 2, 3)
+    }
+    out.should =~ /to_hash\nargsa\nargsb\nargsc\nargs_a\nargs_b\nargs_c/
+  end
+
+  it "test_actions_of_various_arity_are_ok_with_args" do
+    remote "127.0.0.1"
+    t = task(:t, :x) do
+      puts "a"
+    end
+    t.enhance do | |
+      puts "b"
+    end
+    t.enhance do |task|
+      puts "c"
+      puts "Task" if task.kind_of? Rake::Task
+    end
+    t.enhance do |t2, args|
+      puts "d"
+      puts "-#{t2.name}-"
+      hash = Hash.new
+      hash[:x] = 1
+      puts "to_hash" if args.to_hash == hash
+    end
+    out = capture_stdout { 
+      t.invoke(1)
+    }
+    out.should =~ /a\nb\nc\nTask\nd\n-t-\nto_hash/
+  end
+  
+  it "test_arguments_are_passed_to_block" do
+    remote "127.0.0.1"
+    t = task(:t, :a, :b) do |tt, args|
+      hash = Hash.new
+      hash[:a] = 1
+      hash[:b] = 2
+      puts "to_hash" if args.to_hash == hash
+    end
+    out = capture_stdout { 
+      t.invoke(1,2)
+    }
+    out.should =~ /to_hash/
+  end
+
+  it "test_extra_parameters_are_ignored" do
+    remote "127.0.0.1"
+    t = task(:t, :a) do |tt, args|
+      puts "args_a" if args.a == 1
+      puts "args_b" if args.b.nil?
+    end
+    out = capture_stdout { 
+      t.invoke(1,2)
+    }
+    out.should =~ /args_a\nargs_b/
+  end
+
+  it "test_arguments_are_passed_to_all_blocks" do
+    remote "127.0.0.1"
+    t = task :t, :a
+    task :t do |tt, args|
+      puts "argsa" if args[:a] == 1
+    end
+    task :t do |tt, args|
+      puts "argsa" if args[:a] == 1
+    end
+    out = capture_stdout { 
+      t.invoke(1)
+    }
+    out.should =~ /argsa\nargsa/
+  end
+
+  it "test_block_with_no_parameters_is_ok" do
+    remote "127.0.0.1"
+    t = task(:t) do end
+    t.invoke(1, 2)
+  end
+
+  it "test_named_args_are_passed_to_prereqs" do
+    remote "127.0.0.1"
+    pre = task(:pre, :rev) do |t, args| puts args.rev end
+    t = task(:t, :name, :rev, :needs => [:pre])
+    out = capture_stdout { 
+      t.invoke("bill", "1.2")
+    }
+    out.should == "1.2\n"
+  end
+
+  it "test_args_not_passed_if_no_prereq_names" do
+    remote "127.0.0.1"
+    pre = task(:pre) do |t, args|
+      puts "args is empty" if args.to_hash.empty?
+      puts args.name.inspect
+    end
+    t = task(:t, :name, :rev, :needs => [:pre])
+    out = capture_stdout { 
+      t.invoke("bill", "1.2")
+    }
+    out.should == "args is empty\nnil\n"
+  end
+
+  it "test_args_not_passed_if_no_arg_names" do
+    remote "127.0.0.1"
+    pre = task(:pre, :rev) do |t, args|
+      puts "args is empty" if args.to_hash.empty?
+    end
+    t = task(:t, :needs => [:pre])
+    out = capture_stdout { 
+      t.invoke("bill", "1.2")
+    }
+    out.should == "args is empty\n"
   end
 end
