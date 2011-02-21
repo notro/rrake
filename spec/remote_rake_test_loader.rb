@@ -46,12 +46,13 @@ end if RUBY_VERSION_FLOAT < 1.9
 require 'minitest/unit' if RUBY_VERSION_FLOAT >= 1.9
 module MiniTest
   class Unit
+    alias_method :orig_puke, :puke
     def puke klass, meth, e
       if e.is_a? MiniTest::Skip
         @skips += 1
         "S"
       else
-        super
+        orig_puke klass, meth, e
       end
     end
   end
