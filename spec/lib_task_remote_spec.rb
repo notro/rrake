@@ -171,6 +171,76 @@ describe "Rake::Task with remote" do
     t.locations.first.should =~/#{Regexp.quote(__FILE__)}/
   end
 
+  it "test_invoke" do
+    remote "127.0.0.1"
+    t1 = task(:t1 => [:t2, :t3]) do |t| puts t.name; 3321 end
+    t2 = task(:t2) do |t| puts t.name end
+    t3 = task(:t3) do |t| puts t.name end
+    t1.prerequisites.should == ["t2", "t3"]
+    out = capture_stdout { 
+      t1.invoke
+    }
+    out.should == "t2\nt3\nt1\n"
+  end
+
+  it "test_invoke_with_circular_dependencies" do
+    remote "127.0.0.1"
+    t1 = task(:t1 => [:t2]) do |t| puts t.name; 3321 end
+    t2 = task(:t2 => [:t1]) do |t| puts t.name end
+    t1.prerequisites.should == ["t2"]
+    t2.prerequisites.should == ["t1"]
+    expect{ t1.invoke }.to raise_error RuntimeError, /circular dependency.*t1 => t2 => t1/i
+  end
+
+  it "test_no_double_invoke" do
+    remote "127.0.0.1"
+    t1 = task(:t1 => [:t2, :t3]) do |t| puts t.name; 3321 end
+    t2 = task(:t2 => [:t3]) do |t| puts t.name end
+    t3 = task(:t3) do |t| puts t.name end
+    out = capture_stdout { 
+      t1.invoke
+    }
+    out.should == "t3\nt2\nt1\n"
+  end
+
+  it "test_can_double_invoke_with_reenable" do
+    remote "127.0.0.1"
+    t1 = task(:t1) do |t| puts t.name end
+    out = capture_stdout { 
+      t1.invoke
+    }
+    out.should == "t1\n"
+    t1.reenable
+    out = capture_stdout { 
+      t1.invoke
+    }
+    out.should == "t1\n"
+  end
+
+  it "test_multi_invocations" do
+    p = proc do |t| puts t.name end
+    remote "127.0.0.1"
+    task({:t1=>[:t2,:t3]}, &p)
+    task({:t2=>[:t3]}, &p)
+    task(:t3, &p)
+    out = capture_stdout { 
+      ::Rake::Task[:t1].invoke
+    }
+    out.should == "t3\nt2\nt1\n" #    assert_equal ["t1", "t2", "t3"], runs.sort
+  end
+
+  it "test_timestamp_returns_now_if_all_prereqs_have_no_times" do
+    remote "127.0.0.1"
+    a = task :a => ["b", "c"]
+    b = task :b
+    c = task :c
+
+    # This can't be tested like the original test, because Time.now is accessed in another process.
+    time = Time.now
+    a.timestamp.should be_within(1).of(time)
+  end
+  
+  
 # TestTaskWithArguments
   it "test_arg_list_is_empty_if_no_args_given" do
     remote "127.0.0.1"

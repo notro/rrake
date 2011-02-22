@@ -18,35 +18,37 @@ skip :TestApplication, :test_good_run
 ###############################################################################
 #
 # test/lib/task_test.rb
+#
+# The skipped tests are reimplemented as rspecs in spec/lib_task_remote_spec.rb, except for test_filelists_can_be_prerequisites
 
 # TestTask
-# NameError: undefined local variable or method `runlist' for Rake:Module
-skip :TestTask, :test_can_double_invoke_with_reenable
-
-# NoMethodError: undefined method `to_hash' for 0:Fixnum
+# Task actions need access to local variable in test method
 skip :TestTask, :test_create
 
-# Nestful::ServerError: Failed.  Response code = 500.  Response message = Internal Server Error .
-skip :TestTask, :test_filelists_can_be_prerequisites
-
-# NameError: undefined local variable or method `runlist' for Rake:Module
+# Task actions need access to local variable in test method
 skip :TestTask, :test_invoke
-
-# NameError: undefined local variable or method `runs' for Rake:Module
-skip :TestTask, :test_multi_invocations
-
-# NameError: undefined local variable or method `runlist' for Rake:Module
-skip :TestTask, :test_no_double_invoke
-
-# <100> expected but was
-skip :TestTask, :test_timestamp_returns_now_if_all_prereqs_have_no_times
 
 # Fail on Ruby 1.9
 # NoMethodError: undefined method `line_no' for nil:NilClass
 skip :TestTask, :test_invoke_with_circular_dependencies
 
+# Task actions need access to local variable in test method
+skip :TestTask, :test_no_double_invoke
 
-# TestTaskWithArguments (these are implemented as rspecs)
+# Task actions need access to local variable in test method
+skip :TestTask, :test_can_double_invoke_with_reenable
+
+# Task actions need access to local variable in test method
+skip :TestTask, :test_multi_invocations
+
+# Nestful::ServerError: Failed.  Response code = 500.  Response message = Internal Server Error .
+skip :TestTask, :test_filelists_can_be_prerequisites
+
+# <100> expected but was
+skip :TestTask, :test_timestamp_returns_now_if_all_prereqs_have_no_times
+
+
+# TestTaskWithArguments
 # assert_equal in task action
 skip :TestTaskWithArguments, :test_arg_list_is_empty_if_no_args_given
 
