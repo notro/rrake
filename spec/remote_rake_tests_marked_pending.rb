@@ -19,7 +19,7 @@ skip :TestApplication, :test_good_run
 #
 # test/lib/task_test.rb
 #
-# The skipped tests are reimplemented as rspecs in spec/lib_task_remote_spec.rb, except for test_filelists_can_be_prerequisites
+# The skipped tests are reimplemented as rspecs in spec/lib_task_remote_spec.rb.
 
 # TestTask
 # Task actions need access to local variable in test method
@@ -40,9 +40,6 @@ skip :TestTask, :test_can_double_invoke_with_reenable
 
 # Task actions need access to local variable in test method
 skip :TestTask, :test_multi_invocations
-
-# Nestful::ServerError: Failed.  Response code = 500.  Response message = Internal Server Error .
-skip :TestTask, :test_filelists_can_be_prerequisites
 
 # <100> expected but was
 skip :TestTask, :test_timestamp_returns_now_if_all_prereqs_have_no_times

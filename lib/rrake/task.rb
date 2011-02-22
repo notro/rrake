@@ -128,7 +128,7 @@ module Rake
       if @remote and ((deps and !deps.empty?) or block_given?)
         create_remote_task
         if deps
-          rpost("enhance", {"deps"=>deps})
+          rpost("enhance", {"deps"=>deps.to_ary})
           debug2 "Added prerequisites to remote task '#{@url}' :: #{deps.inspect}"
         end
         if block_given?
