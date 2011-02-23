@@ -40,6 +40,7 @@ describe "standard rake test cases" do
   end
   
   after :all do
+    ENV['RAKE_REMOTE'] = nil  
     ::Rake.application.clear
     if @verbose
       puts "\n\n#{TestServer.logfile.path}"
