@@ -142,5 +142,12 @@ describe Rake::API do
     rpost("task/task_2", {:klass => ::Rake::Task.to_s})
     rget("tasks").should == ["task_1", "task_2"]
   end
-
+  
+  it "fileexist should return false if file does not exist" do
+    rget("fileexist", {"file" => "does_not_exist/at_all"}).should == false
+  end
+  
+  it "fileexist should return true if file exist" do
+    rget("fileexist", {"file" => __FILE__}).should == true
+  end
 end

@@ -64,6 +64,12 @@ class API < Grape::API
     Rake.application.clear
   end
 
+  get "fileexist" do
+    setup
+    error!("400 Bad request: missing file", 400) unless params["file"]
+    log_return File.exist? params["file"]
+  end
+  
   get "tasks" do
     setup
     log_return Rake.application.tasks.collect { |t| t.name }
