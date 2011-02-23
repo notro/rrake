@@ -467,8 +467,6 @@ describe "standard rake test cases" do
     end
   end
 
-
-#pending "some tests are still not reimplemented" do  
   # test/lib/multitask_test.rb
   describe "TestMultiTask" do
     before :each do
@@ -482,33 +480,44 @@ describe "standard rake test cases" do
       end
     end
 
-    xit "test_running_multitasks" do
-      task :a do 3.times do |i| add_run("A#{i}"); sleep 0.01; end end
-      task :b do 3.times do |i| add_run("B#{i}"); sleep 0.01;  end end
+    it "test_running_multitasks" do
+      remote "127.0.0.1"
+      task :a do |t| 3.times do |i| t.fatal "A#{i}"; sleep 0.01; end end
+      remote
+      task :b do |t| 3.times do |i| t.fatal "B#{i}"; sleep 0.01;  end end
+      remote
       multitask :both => [:a, :b]
-      Task[:both].invoke
-      assert_equal 6, @runs.size
-      assert @runs.index("A0") < @runs.index("A1")
-      assert @runs.index("A1") < @runs.index("A2")
-      assert @runs.index("B0") < @runs.index("B1")
-      assert @runs.index("B1") < @runs.index("B2")
+      ::Rake::Task[:both].invoke
+      msg = TestServer.msg
+      runs = msg.lines.select { |l| l.include? "FATAL"}
+      runs.size.should == 6
+      (runs.index { |r| r.include?("A0") }).should < (runs.index { |r| r.include?("A1") })
+      (runs.index { |r| r.include?("A1") }).should < (runs.index { |r| r.include?("A2") })
+      (runs.index { |r| r.include?("B0") }).should < (runs.index { |r| r.include?("B1") })
+      (runs.index { |r| r.include?("B1") }).should < (runs.index { |r| r.include?("B2") })
     end
 
-    xit "test_all_multitasks_wait_on_slow_prerequisites" do
-      task :slow do 3.times do |i| add_run("S#{i}"); sleep 0.05 end end
-      task :a => [:slow] do 3.times do |i| add_run("A#{i}"); sleep 0.01 end end
-      task :b => [:slow] do 3.times do |i| add_run("B#{i}"); sleep 0.01 end end
+    it "test_all_multitasks_wait_on_slow_prerequisites" do
+      remote "127.0.0.1"
+      task :slow do |t| 3.times do |i| t.fatal "S#{i}"; sleep 0.05 end end
+      remote
+      task :a => [:slow] do |t| 3.times do |i| t.fatal "A#{i}"; sleep 0.01 end end
+      remote
+      task :b => [:slow] do |t| 3.times do |i| t.fatal "B#{i}"; sleep 0.01 end end
+      remote
       multitask :both => [:a, :b]
-      Task[:both].invoke
-      assert_equal 9, @runs.size
-      assert @runs.index("S0") < @runs.index("S1")
-      assert @runs.index("S1") < @runs.index("S2")
-      assert @runs.index("S2") < @runs.index("A0")
-      assert @runs.index("S2") < @runs.index("B0")
-      assert @runs.index("A0") < @runs.index("A1")
-      assert @runs.index("A1") < @runs.index("A2")
-      assert @runs.index("B0") < @runs.index("B1")
-      assert @runs.index("B1") < @runs.index("B2")
+      ::Rake::Task[:both].invoke
+      msg = TestServer.msg
+      runs = msg.lines.select { |l| l.include? "FATAL"}
+      runs.size.should == 9
+      (runs.index { |r| r.include?("S0") }).should < (runs.index { |r| r.include?("S1") })
+      (runs.index { |r| r.include?("S1") }).should < (runs.index { |r| r.include?("S2") })
+      (runs.index { |r| r.include?("S2") }).should < (runs.index { |r| r.include?("A0") })
+      (runs.index { |r| r.include?("S2") }).should < (runs.index { |r| r.include?("B0") })
+      (runs.index { |r| r.include?("A0") }).should < (runs.index { |r| r.include?("A1") })
+      (runs.index { |r| r.include?("A1") }).should < (runs.index { |r| r.include?("A2") })
+      (runs.index { |r| r.include?("B0") }).should < (runs.index { |r| r.include?("B1") })
+      (runs.index { |r| r.include?("B1") }).should < (runs.index { |r| r.include?("B2") })
     end
   end
   
@@ -539,77 +548,123 @@ puts TestServer.msg
   
   # test/lib/rules_test.rb
   describe "TestRules" do
+    include FileCreation
+    
+    SRCFILE  = "testdata/abc.c"
+    SRCFILE2 =  "testdata/xyz.c"
+    FTNFILE  = "testdata/abc.f"
+    OBJFILE  = "testdata/abc.o"
+    FOOFILE  = "testdata/foo"
+    DOTFOOFILE = "testdata/.foo"
+
+    before :all do
+      ::Rake::Task.clear
+#::Rake.application.options.trace_rules = true
+    end
+
+    after :all do
+      FileList['testdata/*'].uniq.each do |f| rm_r(f, :verbose=>false) end
+#puts      TestServer.msg
+    end
+    
     before :each do
       ::Rake.application.clear
       TestServer.msg
+      @runs = nil
+    end
+    
+    def runs
+      return @runs unless @runs.nil?
+      @runs = []
+      @msg = TestServer.msg
+      fatal = @msg.lines.select { |l| l.include? "FATAL"}
+      fatal.each { |f| m = f.match(/--(.+)--/); @runs << m[1] if m }
+      @runs
     end
     
     xit "test_multiple_rules1" do
+      TestServer.msg
       create_file(FTNFILE)
       delete_file(SRCFILE)
       delete_file(OBJFILE)
-      rule(/\.o$/ => ['.c']) do @runs << :C end
-      rule(/\.o$/ => ['.f']) do @runs << :F end
-      t = Task[OBJFILE]
+      remote "127.0.0.1"
+      rule(/\.o$/ => ['.c']) do |t| t.fatal "--C--" end
+      remote
+      rule(/\.o$/ => ['.f']) do |t| t.fatal "--F--" end
+      remote
+      t = ::Rake::Task[OBJFILE]
       t.invoke
-      Task[OBJFILE].invoke
-      assert_equal [:F], @runs
+      ::Rake::Task[OBJFILE].invoke
+      runs.should == ["F"]
     end
 
     xit "test_multiple_rules2" do
       create_file(FTNFILE)
       delete_file(SRCFILE)
       delete_file(OBJFILE)
-      rule(/\.o$/ => ['.f']) do @runs << :F end
-      rule(/\.o$/ => ['.c']) do @runs << :C end
-      Task[OBJFILE].invoke
-      assert_equal [:F], @runs
+      remote "127.0.0.1"
+      rule(/\.o$/ => ['.f']) do |t| t.fatal "--F--" end
+      remote
+      rule(/\.o$/ => ['.c']) do |t| t.fatal "--C--" end
+      remote
+      ::Rake::Task[OBJFILE].invoke
+      runs.should == ["F"]
     end
 
     xit "test_create_with_source" do
       create_file(SRCFILE)
+      remote "127.0.0.1"
       rule(/\.o$/ => ['.c']) do |t|
-        @runs << t.name
-        assert_equal OBJFILE, t.name
-        assert_equal SRCFILE, t.source
+        t.fatal "--#{t.name}--"
+        t.error "assert_equal #{t.name}"
+        t.error "assert_equal #{t.source}"
       end
-      Task[OBJFILE].invoke
-      assert_equal [OBJFILE], @runs
+      ::Rake::Task[OBJFILE].invoke
+      runs.should == [OBJFILE]
+      @msg.should =~ /ERROR.*assert_equal #{OBJFILE}.*ERROR.*assert_equal #{SRCFILE}/m
     end
 
+#pending do
     xit "test_single_dependent" do
       create_file(SRCFILE)
+      remote "127.0.0.1"
       rule(/\.o$/ => '.c') do |t|
         @runs << t.name
       end
-      Task[OBJFILE].invoke
+      remote
+      ::Rake::Task[OBJFILE].invoke
       assert_equal [OBJFILE], @runs
     end
 
     xit "test_rule_can_be_created_by_string" do
       create_file(SRCFILE)
+      remote "127.0.0.1"
       rule '.o' => ['.c'] do |t|
         @runs << t.name
       end
-      Task[OBJFILE].invoke
+      remote
+      ::Rake::Task[OBJFILE].invoke
       assert_equal [OBJFILE], @runs
     end
 
     xit "test_rule_prereqs_can_be_created_by_string" do
       create_file(SRCFILE)
+      remote "127.0.0.1"
       rule '.o' => '.c' do |t|
         @runs << t.name
       end
-      Task[OBJFILE].invoke
+      remote
+      ::Rake::Task[OBJFILE].invoke
       assert_equal [OBJFILE], @runs
     end
 
     xit "test_plain_strings_as_dependents_refer_to_files" do
       create_file(SRCFILE)
+      remote "127.0.0.1"
       rule '.o' => SRCFILE do |t|
         @runs << t.name
       end
-      Task[OBJFILE].invoke
+      ::Rake::Task[OBJFILE].invoke
       assert_equal [OBJFILE], @runs
     end
 
@@ -617,10 +672,11 @@ puts TestServer.msg
       verbose(false) do
         chdir("testdata") do
           create_file('.foo')
+          remote "127.0.0.1"
           rule '.o' => "./.foo" do |t|
             @runs << t.name
           end
-          Task[OBJFILE].invoke
+          ::Rake::Task[OBJFILE].invoke
           assert_equal [OBJFILE], @runs
         end
       end
@@ -630,6 +686,7 @@ puts TestServer.msg
       verbose(false) do
         chdir("testdata") do
           create_file(".foo")
+          remote "127.0.0.1"
           rule '.o' => lambda{".foo"} do |t|
             @runs << "#{t.name} - #{t.source}"
           end
@@ -643,6 +700,7 @@ puts TestServer.msg
       verbose(false) do
         chdir("testdata") do
           create_file("foo%x")
+          remote "127.0.0.1"
           rule '.o' => lambda{"foo%x"} do |t|
             @runs << "#{t.name} - #{t.source}"
           end
@@ -656,6 +714,7 @@ puts TestServer.msg
       verbose(false) do
         chdir("testdata") do
           create_file("abc.c")
+          remote "127.0.0.1"
           rule "abc" => '.c' do |t|
             @runs << t.name
           end
@@ -669,6 +728,7 @@ puts TestServer.msg
       verbose(false) do
         chdir("testdata") do
           create_file("zzabc.c")
+          remote "127.0.0.1"
           rule ".o" => 'zz%{x,a}n.c' do |t|
             @runs << "#{t.name} - #{t.source}"
           end
@@ -682,6 +742,7 @@ puts TestServer.msg
       verbose(false) do
         chdir("testdata") do
           create_file("plainname")
+          remote "127.0.0.1"
           rule ".o" => 'plainname' do |t|
             @runs << "#{t.name} - #{t.source}"
           end
@@ -695,6 +756,7 @@ puts TestServer.msg
       create_file(SRCFILE)
       create_file(SRCFILE2)
       delete_file(OBJFILE)
+      remote "127.0.0.1"
       rule '.o' => '.c' do |t|
         @runs << t.source
       end
@@ -703,8 +765,18 @@ puts TestServer.msg
       assert_equal [SRCFILE], @runs
     end
 
+    xit "test_close_matches_on_name_do_not_trigger_rule" do
+      create_file("testdata/x.c")
+      rule '.o' => ['.c'] do |t|
+        @runs << t.name
+      end
+      assert_exception(RuntimeError) { Task['testdata/x.obj'].invoke }
+      assert_exception(RuntimeError) { Task['testdata/x.xyo'].invoke }
+    end
+
     xit "test_rule_rebuilds_obj_when_source_is_newer" do
       create_timed_files(OBJFILE, SRCFILE)
+      remote "127.0.0.1"
       rule(/\.o$/ => ['.c']) do
         @runs << :RULE
       end
@@ -714,6 +786,7 @@ puts TestServer.msg
 
     xit "test_rule_with_two_sources_runs_if_both_sources_are_present" do
       create_timed_files(OBJFILE, SRCFILE, SRCFILE2)
+      remote "127.0.0.1"
       rule OBJFILE => [lambda{SRCFILE}, lambda{SRCFILE2}] do
         @runs << :RULE
       end
@@ -721,7 +794,18 @@ puts TestServer.msg
       assert_equal [:RULE], @runs
     end
 
+    xit "test_rule_with_two_sources_but_one_missing_does_not_run" do
+      create_timed_files(OBJFILE, SRCFILE)
+      delete_file(SRCFILE2)
+      rule OBJFILE => [lambda{SRCFILE}, lambda{SRCFILE2}] do
+        @runs << :RULE
+      end
+      Task[OBJFILE].invoke
+      assert_equal [], @runs
+    end
+
     xit "test_rule_with_two_sources_builds_both_sources" do
+      remote "127.0.0.1"
       task 'x.aa'
       task 'x.bb'
       rule '.a' => '.aa' do
@@ -740,6 +824,7 @@ puts TestServer.msg
     xit "test_second_rule_runs_when_first_rule_doesnt" do
       create_timed_files(OBJFILE, SRCFILE)
       delete_file(SRCFILE2)
+      remote "127.0.0.1"
       rule OBJFILE => [lambda{SRCFILE}, lambda{SRCFILE2}] do
         @runs << :RULE1
       end
@@ -752,6 +837,7 @@ puts TestServer.msg
 
     xit "test_second_rule_doest_run_if_first_triggers" do
       create_timed_files(OBJFILE, SRCFILE, SRCFILE2)
+      remote "127.0.0.1"
       rule OBJFILE => [lambda{SRCFILE}, lambda{SRCFILE2}] do
         @runs << :RULE1
       end
@@ -764,6 +850,7 @@ puts TestServer.msg
 
     xit "test_second_rule_doest_run_if_first_triggers_with_reversed_rules" do
       create_timed_files(OBJFILE, SRCFILE, SRCFILE2)
+      remote "127.0.0.1"
       rule OBJFILE => [lambda{SRCFILE}] do
         @runs << :RULE1
       end
@@ -779,6 +866,7 @@ puts TestServer.msg
       ran = false
       mkdir_p("testdata/src/jw")
       create_file("testdata/src/jw/X.java")
+      remote "127.0.0.1"
       rule %r(classes/.*\.class) => [
         proc { |fn| fn.pathmap("%{classes,testdata/src}d/%n.java") }
       ] do |task|
@@ -798,6 +886,7 @@ puts TestServer.msg
       ran = false
       mkdir_p("testdata/flatten")
       create_file("testdata/flatten/a.txt")
+      remote "127.0.0.1"
       task 'testdata/flatten/b.data' do |t|
         ran = true
         touch t.name, :verbose => false
@@ -820,6 +909,7 @@ puts TestServer.msg
     xit "test_recursive_rules_will_work_as_long_as_they_terminate" do
       actions = []
       create_file("testdata/abc.xml")
+      remote "127.0.0.1"
       rule '.y' => '.xml' do actions << 'y' end
       rule '.c' => '.y' do actions << 'c'end
       rule '.o' => '.c' do actions << 'o'end
@@ -827,8 +917,23 @@ puts TestServer.msg
       Task["testdata/abc.exe"].invoke
       assert_equal ['y', 'c', 'o', 'exe'], actions
     end
+    
+    xit "test_recursive_rules_that_dont_terminate_will_overflow" do
+      create_file("testdata/a.a")
+      prev = 'a'
+      ('b'..'z').each do |letter|
+        rule ".#{letter}" => ".#{prev}" do |t| puts "#{t.name}" end
+        prev = letter
+      end
+      ex = assert_exception(Rake::RuleRecursionOverflowError) {
+        Task["testdata/a.z"].invoke
+      }
+      assert_match(/a\.z => testdata\/a.y/, ex.message)
+    end
+#end
   end
   
+#pending "some tests are still not reimplemented" do
   # test/lib/dsl_test.rb
   describe "DslTest" do
     before :each do

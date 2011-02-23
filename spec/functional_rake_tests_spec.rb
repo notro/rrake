@@ -14,7 +14,8 @@ end
 
 
 module TestFiles
-  EXCLUDE = ['test/lib/package_task_test.rb', 'test/lib/rdoc_task_test.rb']
+  # test/lib/rules_test.rb is implemented as spec
+  EXCLUDE = ['test/lib/package_task_test.rb', 'test/lib/rdoc_task_test.rb', 'test/lib/rules_test.rb']
   UNIT = FileList['test/lib/*_test.rb'] - EXCLUDE
   FUNCTIONAL = FileList['test/functional/*_test.rb'] - EXCLUDE
   CONTRIB = FileList['test/contrib/test*.rb'] - EXCLUDE
