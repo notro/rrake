@@ -42,11 +42,9 @@ describe "Rake::Task override_needed" do
   
   it "should show up in investigation" do
     t = task :one
-    t.investigation.should =~/needed.*true.*\(not overrided/
+    t.investigation.should =~ /needed.*true/
     t.override_needed do false end
-    t.investigation.should =~/needed.*false.*\(overrided.*do\s*false\s*end/
-    t.override_needed do var = "012345678901234567890123456789"; false end
-    t.investigation.should =~/needed.*false.*\(overrided.*do\s*var.*\.\.\./
+    t.investigation.should =~ /needed.*false.*\(.*Proc.*#{__FILE__}.*#{__LINE__ - 1}/
   end
 end
 

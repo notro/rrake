@@ -446,22 +446,14 @@ module Rake
     # Return a string describing the internal state of a task.  Useful for
     # debugging.
     def investigation
-      begin
-        if @override_needed_block
-          code = @override_needed_block.source.to_s.inspect
-          code = "#{code[0..36]}..." if code.size > 40
-          override_text = "overrided: #{code}"
-        else
-          override_text = "not overrided"
-        end
-      rescue Exception => e
-        override_text = "!!failed to show proc: #{e}"
-      end
       result = "------------------------------\n"
       result << "Investigating '#{name=='' ? '<noname>' : name}'\n"
       result << "  class:      #{self.class}\n"
+      result << "  remote:     #{remote}\n"
       result << "  invoked:    #{@already_invoked}\n"
-      result << "  needed:     #{needed?} (#{override_text})\n"
+      result << "  needed:     #{needed?}"
+      result << " (#{@override_needed_block.inspect})" if @override_needed_block
+      result << "\n"
       result << "  timestamp:  #{timestamp}\n"
       result << "  actions:    #{actions.inspect}\n"
       result << "  conditions: #{conditions.inspect}\n"
