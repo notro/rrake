@@ -1,6 +1,8 @@
 #
-# Tests that currently doesn't run as remote tasks
+# Original Rake tests that won't run as remote tasks
+# The tests are reimplemented in 'functional_rake_tests_reimplemented_spec.rb'
 #
+
 
 
 ###############################################################################
@@ -19,7 +21,6 @@ skip :TestApplication, :test_good_run
 #
 # test/lib/task_test.rb
 #
-# The skipped tests are reimplemented as rspecs in spec/lib_task_remote_spec.rb.
 
 # TestTask
 # Task actions need access to local variable in test method
