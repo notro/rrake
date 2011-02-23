@@ -34,4 +34,12 @@ describe Rake::DSL do
     ::Rake.application.last_remote.should == host
     ::Rake.application.last_remote_with_host.should == host
   end
+  
+  it "remote should accept block and set Rake.application.options.remoteurl inside" do
+    ::Rake.application.options.remoteurl.should == nil
+    remote "server.com" do
+      ::Rake.application.options.remoteurl.should == "server.com"
+    end
+    ::Rake.application.options.remoteurl.should == nil
+  end
 end

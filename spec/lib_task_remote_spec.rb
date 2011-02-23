@@ -148,4 +148,15 @@ describe "Rake::Task with remote" do
     out.should =~ /-- task2_pre --/
   end
   
+  it "should set remote on all tasks inside remote block" do
+    ::Rake.application.options.remoteurl.should == nil
+    remote "127.0.0.1" do
+      @t1 = task :t1
+      @t2 = task :t2
+    end
+    t3 = task :t3
+    @t1.remote.should =~/127.0.0.1/
+    @t2.remote.should =~/127.0.0.1/
+    t3.remote.should == nil
+  end
 end

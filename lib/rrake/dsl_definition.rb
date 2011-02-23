@@ -123,7 +123,9 @@ module Rake
     
     # Make the subsequent task execute on a remote machine
     # If host is not specified, the last remote with a host specified will be used.
+    # remote also accepts a block and will set remote for all the contained tasks.
     # Argument: host|ip[:port]
+    #
     #  remote "server.com"
     #  file "somefile" do
     #    puts "will run if somefile does not exist on server.com"
@@ -133,6 +135,13 @@ module Rake
     #  task :task do
     #    puts "will execute on server.com"
     #  end
+    #
+    #  remote "127.0.0.1" do
+    #    task :t1 do puts "will execute on 127.0.0.1" end
+    #    task :t2 do puts "will execute on 127.0.0.1" end
+    #  end
+    #  task :t3 do puts "will execute locally" end
+    #
     def remote(host=nil)
       if host then
         Rake.application.last_remote = host
@@ -143,6 +152,12 @@ module Rake
         else
           fail ArgumentError, "missing host"
         end
+      end
+      if block_given?
+        global_remote = Rake.application.options.remoteurl
+        Rake.application.options.remoteurl = Rake.application.last_remote
+        yield
+        Rake.application.options.remoteurl = global_remote
       end
     end
     
