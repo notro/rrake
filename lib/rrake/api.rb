@@ -139,6 +139,14 @@ class API < Grape::API
       log_return "exception" => exception, "exit_status" => exit_status, "output" => capture.output
     end
     
+    post "sources" do
+      setup
+      error!("400 Bad request: missing prereqs", 400) unless body["prereqs"]
+      Rake.application.debug2 "  data: #{body.inspect}"
+      task.sources = body["prereqs"]
+      log_return task.sources
+    end
+    
     post "enhance" do
       setup
       Rake.application.debug2 "  data: #{body.inspect}"

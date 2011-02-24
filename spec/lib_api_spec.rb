@@ -150,4 +150,11 @@ describe Rake::API do
   it "fileexist should return true if file exist" do
     rget("fileexist", {"file" => __FILE__}).should == true
   end
+  
+  it "should be able to set sources" do
+    sources = ['file_1', 'file_2']
+    rpost("task/task_1", {:klass => ::Rake::Task.to_s})
+    rpost("task/task_1/sources", {:prereqs => sources}).should == sources
+  end
+  
 end

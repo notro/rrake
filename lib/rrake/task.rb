@@ -70,9 +70,16 @@ module Rake
     end
 
     # List of sources for task.
-    attr_writer :sources
     def sources
       @sources ||= []
+    end
+    
+    def sources=(value)
+      @sources = value
+      if remote
+        rpost("sources", {:prereqs=>@sources})
+        debug2 "Set sources on remote task '#{@url}' :: #{@sources.inspect}"
+      end
     end
     
     # List of prerequisite tasks
@@ -457,6 +464,7 @@ module Rake
       result << "  timestamp:  #{timestamp}\n"
       result << "  actions:    #{actions.inspect}\n"
       result << "  conditions: #{conditions.inspect}\n"
+      result << "  sources:    #{sources.inspect}\n"
       result << "  pre-requisites: \n"
       prereqs = prerequisite_tasks
       prereqs.sort! {|a,b| a.timestamp <=> b.timestamp}
