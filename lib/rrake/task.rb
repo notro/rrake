@@ -117,7 +117,7 @@ module Rake
       @url = nil
       @remote_task_created = false
       @env_var_exclude_filter = DEFAULT_ENV_VAR_EXCLUDE_FILTER
-      self.log_context = @application.respond_to?(:name) ? @application.name : ''
+      self.log_context = @name
       debug2 "Created task: #{@name}"
       self.remote = @application.options.remoteurl if @application.respond_to?(:options)
       self.remote ||= ENV['RAKE_REMOTE']
