@@ -70,6 +70,18 @@ class API < Grape::API
     log_return File.exist? params["file"]
   end
   
+  get "pwd" do
+    setup
+    log_return Dir.pwd
+  end
+  
+  put "chdir" do
+    setup
+    error!("400 Bad request: missing dir", 400) unless body["dir"]
+    Dir.chdir body["dir"]
+    log_return Dir.pwd
+  end
+  
   get "tasks" do
     setup
     log_return Rake.application.tasks.collect { |t| t.name }

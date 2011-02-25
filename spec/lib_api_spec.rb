@@ -157,4 +157,14 @@ describe Rake::API do
     rpost("task/task_1/sources", {:prereqs => sources}).should == sources
   end
   
+  it "pwd should return working dir" do
+    rget("pwd").should == File.dirname(File.dirname(__FILE__))
+  end
+  
+  it "chdir should set working dir" do
+    r = rput("chdir", {:dir => "spec"})
+    rput("chdir", {:dir => ".."}).should == rget("pwd")
+    r.should == File.dirname(__FILE__)
+  end
+  
 end
