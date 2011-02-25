@@ -57,11 +57,29 @@ module TestServer
   def msg
     logfile.read
   end
+  
+  def pwd
+    @instance.rget "pwd"
+  end
+  
+  def chdir(dir, &block)
+    olddir = pwd if block_given?
+    @instance.rput "chdir", :dir => dir
+    if block_given?
+      begin
+        yield
+      ensure
+        @instance.rput "chdir", :dir => olddir
+      end
+    end
+  end
 end
 
 
 class RRakeServer
-  attr_reader :logfile, :pid
+  include Rake::RestClient
+  
+  attr_reader :logfile, :pid, :url, :log_context
 
   def initialize
     logfile = 'testserver/server.log'
@@ -93,6 +111,11 @@ class RRakeServer
       timeout += 1
       fail "timeout, could not start server" if timeout > 600
     end
+    @logfile.rewind
+    msg = @logfile.read
+    u = msg.scan /TCPServer.*(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b),\s(\d+)/
+    @url = "http://#{u[0][0]}:#{u[0][1]}/api/v1"
+    @log_context = "RRakeServer"
     @logfile.rewind
   end
 
