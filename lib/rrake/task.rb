@@ -262,6 +262,7 @@ module Rake
       if application.options.trace
         puts "** Execute #{name}"
       end
+      application.enhance_with_matching_rule(name) if @actions.empty?
       if remote
         create_remote_task
         env = ENV.to_hash.reject { |k,v| k =~ env_var_exclude_filter }
@@ -290,7 +291,6 @@ module Rake
         }
         return
       end
-      application.enhance_with_matching_rule(name) if @actions.empty?
       @actions.each do |act|
         case act.arity
         when 1
