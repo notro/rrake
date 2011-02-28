@@ -45,7 +45,7 @@ describe "standard rake test cases" do
     ::Rake.application.clear
     if @verbose
       puts "\n\n#{TestServer.logfile.path}"
-      puts TestServer.msg_all
+      puts TestServer.msg_all if ENV['DEBUG']
       puts "--------------------------------------------------------------------"
     end
   end

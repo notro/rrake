@@ -73,8 +73,8 @@ end
 module SpecFiles
   EXT = FileList['spec/libext_*_spec.rb']
   NODEP = EXT + FileList['spec/libnodep_*_spec.rb']
-  UNIT = NODEP + FileList['spec/lib_*_spec.rb']
-  FUNCTIONAL = FileList['spec/functional_*_spec.rb']
+  UNIT = NODEP + FileList['spec/lib_*_spec.rb'] + FileList['spec/rake_tests_reimplemented/lib/*_spec.rb']
+  FUNCTIONAL = FileList['spec/functional_*_spec.rb'] + FileList['spec/rake_tests_reimplemented/functional/*_spec.rb']
   ALL = UNIT + FUNCTIONAL
 end
 
@@ -111,30 +111,35 @@ namespace :test do
   RSpec::Core::RakeTask.new(:rspec_all) do |t|
     t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
     t.pattern = SpecFiles::ALL
+    t.verbose = false unless ENV['VERBOSE']
   end
 
   desc "Run RSpec tests for external libraries that rrake has extended"
   RSpec::Core::RakeTask.new(:rspec_ext) do |t|
     t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
     t.pattern = SpecFiles::EXT
+    t.verbose = false unless ENV['VERBOSE']
   end
 
   desc "Run RSpec tests for internal libraries that don't depend on other internal libraries"
   RSpec::Core::RakeTask.new(:rspec_nodep) do |t|
     t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
     t.pattern = SpecFiles::NODEP
+    t.verbose = false unless ENV['VERBOSE']
   end
 
   desc "Run RSpec tests for the library"
   RSpec::Core::RakeTask.new(:rspec_units) do |t|
     t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
     t.pattern = SpecFiles::UNIT
+    t.verbose = false unless ENV['VERBOSE']
   end
 
   desc "Run functional RSpec tests"
   RSpec::Core::RakeTask.new(:rspec_functional) do |t|
     t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
     t.pattern = SpecFiles::FUNCTIONAL
+    t.verbose = false unless ENV['VERBOSE']
   end
 
 end
