@@ -5,6 +5,7 @@ module Rake
   # The TaskManager module is a mixin for managing tasks.
   module TaskManager
     include Logging
+    include RestClient
     
     # Track the last comment made in the Rakefile.
     attr_accessor :last_description
@@ -16,6 +17,9 @@ module Rake
     # Track the last remote with a hostname made in the Rakefile.
     attr_accessor :last_remote_with_host #:nodoc:
 
+    # Used by RestClient as base url
+    attr_reader :url # :nodoc:
+
     def initialize
       super
       @tasks = Hash.new
@@ -24,6 +28,7 @@ module Rake
       @last_description = nil
       @last_remote = nil
       @last_remote_with_host = nil
+      @url = nil
     end
 
     def create_rule(*args, &block)
@@ -55,16 +60,22 @@ module Rake
     end
 
     # Find a matching task for +task_name+.
-    def [](task_name, scopes=nil)
+    def [](task_name, scopes=nil, remote=nil)
       task_name = task_name.to_s
       self.lookup(task_name, scopes) or
-        enhance_with_matching_rule(task_name) or
-        synthesize_file_task(task_name) or
+        enhance_with_matching_rule(task_name, 0, remote) or
+        synthesize_file_task(task_name, remote) or
         fail "Don't know how to build task '#{task_name}'"
     end
 
-    def synthesize_file_task(task_name)
-      return nil unless File.exist?(task_name)
+    def synthesize_file_task(task_name, remote=nil)
+      remote ||= verify_remote(@last_remote)
+      if remote
+        return nil unless rget "#{remote}/api/v1/fileexist", :trace => task_name, :file => task_name
+      else
+        return nil unless File.exist?(task_name)
+      end
+      @last_remote = remote
       define_task(Rake::FileTask, task_name)
     end
 
@@ -134,12 +145,12 @@ module Rake
     # task with the prerequisites and actions from the rule.  Set the
     # source attribute of the task appropriately for the rule.  Return
     # the enhanced task or nil of no rule was found.
-    def enhance_with_matching_rule(task_name, level=0)
+    def enhance_with_matching_rule(task_name, level=0, remote=nil)
       fail Rake::RuleRecursionOverflowError,
         "Rule Recursion Too Deep" if level >= 16
       @rules.each do |pattern, extensions, block|
         if md = pattern.match(task_name)
-          task = attempt_rule(task_name, extensions, block, level)
+          task = attempt_rule(task_name, extensions, block, level, remote)
           return task if task
         end
       end
@@ -267,17 +278,25 @@ module Rake
 
     def trace_rule(level, message)
       puts "#{"    "*level}#{message}" if Rake.application.options.trace_rules
+      debug2 message
     end
 
     # Attempt to create a rule given the list of prerequisites.
-    def attempt_rule(task_name, extensions, block, level)
+    def attempt_rule(task_name, extensions, block, level, remote=nil)
+      remote ||= verify_remote(@last_remote)
       sources = make_sources(task_name, extensions)
       prereqs = sources.collect { |source|
-        trace_rule level, "Attempting Rule #{task_name} => #{source}"
-        if File.exist?(source) || Rake::Task.task_defined?(source)
-          trace_rule level, "(#{task_name} => #{source} ... EXIST)"
+        trace_rule level, "Attempting Rule #{task_name} => #{source}#{remote ? ' ('+ remote +')' : ''}"
+        if remote and rget "#{remote}/api/v1/fileexist", :trace => task_name, :file => source
+          trace_rule level, "(#{task_name} => #{source} ... EXIST as file on #{remote})"
           source
-        elsif parent = enhance_with_matching_rule(source, level+1)
+        elsif !remote and File.exist?(source)
+          trace_rule level, "(#{task_name} => #{source} ... EXIST as file)"
+          source
+        elsif Rake::Task.task_defined?(source)
+          trace_rule level, "(#{task_name} => #{source} ... EXIST as task)"
+          source
+        elsif parent = enhance_with_matching_rule(source, level+1, remote)
           trace_rule level, "(#{task_name} => #{source} ... ENHANCE)"
           parent.name
         else
@@ -285,6 +304,7 @@ module Rake
           return nil
         end
       }
+      @last_remote = remote
       task = FileTask.define_task({task_name => prereqs}, &block)
       task.sources = prereqs
       task
@@ -349,6 +369,26 @@ module Rake
       line -= 2
       return nil unless content[line] =~ /^\s*#\s*(.*)/
       $1
+    end
+
+    def verify_remote value
+      return nil if value.nil? or value == ""
+      value = value.to_s
+      begin
+        if value =~ URI::ABS_URI
+          r = URI.parse(value)
+          r = URI.parse("http://#{value}") unless r.host
+        else
+          r = URI.parse("http://#{value}")
+        end
+        raise URI::InvalidURIError unless r.host
+      rescue URI::InvalidURIError
+        fail ArgumentError, "illegal value: '#{value}'"
+      end
+      if respond_to?(:options)
+        r.port = options.port unless value =~ /:\d+/
+      end
+      r.to_s
     end
 
     class << self

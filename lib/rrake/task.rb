@@ -88,7 +88,7 @@ module Rake
     end
     
     def lookup_prerequisite(prerequisite_name)
-      application[prerequisite_name, @scope]
+      application[prerequisite_name, @scope, self.remote]
     end
     private :lookup_prerequisite
 
