@@ -14,11 +14,6 @@ describe "SessionBasedTests" do
   RUBY_COMMAND = 'ruby'
   
   before :all do
-    @verbose = ! ENV['VERBOSE'].nil?
-    if @verbose
-      puts "\n--------------------------------------------------------------------"
-      puts "  Test: #{File.basename __FILE__}\n\n"
-    end
     TestServer.start
     @rake_path = File.expand_path("bin/rrake")
     lib_path = File.expand_path("lib")
@@ -27,11 +22,6 @@ describe "SessionBasedTests" do
   
   after :all do
     ::Rake.application.clear
-    if @verbose
-      puts "\n\n#{TestServer.logfile.path}"
-      puts TestServer.msg_all if ENV['DEBUG']
-      puts "--------------------------------------------------------------------"
-    end
     rm_f "testdata"
   end
   

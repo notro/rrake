@@ -19,11 +19,6 @@ describe "Rake::FileTask with remote" do
 
   before :all do
     rm_rf 'testdata/server'
-    @verbose = ! ENV['VERBOSE'].nil?
-    if @verbose
-      puts "\n--------------------------------------------------------------------"
-      puts "  Test: #{File.basename __FILE__}\n\n"
-    end
     TestServer.start
   end
   
@@ -35,7 +30,7 @@ describe "Rake::FileTask with remote" do
   after :all do
     rm_rf 'testdata/server'
     ::Rake.application.clear
-    if @verbose
+    if false
       puts "\n\n#{TestServer.logfile.path}"
       puts TestServer.msg_all
       puts "--------------------------------------------------------------------"

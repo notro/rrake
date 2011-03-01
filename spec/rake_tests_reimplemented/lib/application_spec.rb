@@ -5,18 +5,13 @@ describe "TestApplication" do
   include InEnvironment
   
   before :all do
-    @verbose = ! ENV['VERBOSE'].nil?
-    if @verbose
-      puts "\n--------------------------------------------------------------------"
-      puts "  Test: #{File.basename __FILE__}\n\n"
-    end
     TestServer.start
     @app = ::Rake::Application.new
     @app.options.rakelib = []
   end
   
   after :all do
-    if @verbose
+    if false
       puts "\n\n#{TestServer.logfile.path}"
       puts TestServer.msg_all if ENV['DEBUG']
       puts "--------------------------------------------------------------------"

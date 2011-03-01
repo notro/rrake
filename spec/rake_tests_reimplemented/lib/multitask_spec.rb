@@ -3,17 +3,12 @@
 
 describe "TestMultiTask" do
   before :all do
-    @verbose = ! ENV['VERBOSE'].nil?
-    if @verbose
-      puts "\n--------------------------------------------------------------------"
-      puts "  Test: #{File.basename __FILE__}\n\n"
-    end
     TestServer.start
   end
   
   after :all do
     ::Rake.application.clear
-    if @verbose
+    if false
       puts "\n\n#{TestServer.logfile.path}"
       puts TestServer.msg_all if ENV['DEBUG']
       puts "--------------------------------------------------------------------"

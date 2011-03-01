@@ -24,14 +24,9 @@ module TestFiles
 end
 
 
-describe "standard rake test cases" do
+describe "Rake test cases running as remote tasks" do
 
   before :all do
-    @verbose = ! ENV['VERBOSE'].nil?
-    if @verbose
-      puts "\n--------------------------------------------------------------------"
-      puts "  Test: #{File.basename __FILE__}\n\n"
-    end
     TestServer.start
   end
   
@@ -43,9 +38,9 @@ describe "standard rake test cases" do
   after :all do
     ENV['RAKE_REMOTE'] = nil  
     ::Rake.application.clear
-    if @verbose
+    if false
       puts "\n\n#{TestServer.logfile.path}"
-      puts TestServer.msg_all if ENV['DEBUG']
+      puts TestServer.msg_all
       puts "--------------------------------------------------------------------"
     end
   end
@@ -54,7 +49,7 @@ describe "standard rake test cases" do
     ::Rake::TestTask.new(:rake_standard) do |t|
       t.test_files = TestFiles::ALL
       t.libs << "."
-#      t.warning = true
+      t.warning = true if $-w
 #      t.verbose = true
     end
     t = ::Rake::Task[:rake_standard]

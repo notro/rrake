@@ -9,11 +9,6 @@ describe Rake::API do
   attr_reader :log_context
   
   before :all do
-    @verbose = ! ENV['VERBOSE'].nil?
-    if @verbose
-      puts "\n--------------------------------------------------------------------"
-      puts "  Test: #{File.basename __FILE__}\n\n"
-    end
     @log_context = "logging => lib_api_spec"
     TestServer.start
     @url = "http://127.0.0.1:#{::Rake.application.options.port}/api/v1/"
@@ -26,7 +21,7 @@ describe Rake::API do
   end
   
   after :all do
-    if @verbose
+    if false
       puts "\n\n#{TestServer.logfile.path}"
       puts TestServer.msg_all
       puts "--------------------------------------------------------------------"

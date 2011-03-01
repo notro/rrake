@@ -5,22 +5,12 @@ describe "TestTask" do
   include CaptureStdout
   
   before :all do
-    @verbose = ! ENV['VERBOSE'].nil?
-    if @verbose
-      puts "\n--------------------------------------------------------------------"
-      puts "  Test: #{File.basename __FILE__}\n\n"
-    end
     ::Rake::TaskManager.record_task_metadata = true
     TestServer.start
   end
   
   after :all do
     ::Rake.application.clear
-    if @verbose
-      puts "\n\n#{TestServer.logfile.path}"
-      puts TestServer.msg_all if ENV['DEBUG']
-      puts "--------------------------------------------------------------------"
-    end
     rm_f "testdata"
     ::Rake::TaskManager.record_task_metadata = false
   end

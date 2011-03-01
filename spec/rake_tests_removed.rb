@@ -3,6 +3,8 @@
 # The tests are reimplemented in 'rake_tests_reimplemented/'
 #
 
+# These test are not reimplemented:
+#   DslTest.test_dsl_toplevel_when_require_rake_dsl: Doesn't test remote capability
 
 
 ###############################################################################

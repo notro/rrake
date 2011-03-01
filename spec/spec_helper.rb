@@ -30,6 +30,8 @@ end
 
 
 module TestServer
+  @instance = nil
+  
   extend self
   
   def instance
@@ -42,6 +44,7 @@ module TestServer
   end
   
   def shutdown
+#    @instance ||= nil
     @instance.shutdown if @instance
   end
   
@@ -88,7 +91,7 @@ class RRakeServer
     touch logfile
 
     @verbose = ! ENV['VERBOSE'].nil?
-    env = @verbose ? "development" : "test"
+    env = ENV['DEBUG'] ? "development" : "test"
     cmd = "#{RUBY} -Ilib bin/rrake --log #{logfile}:all --server --host 127.0.0.1 -s webrick -E #{env}"
     puts "Starting server: #{cmd}\n\n" if @verbose
     @pipe = IO.popen(cmd)
@@ -113,7 +116,7 @@ class RRakeServer
     end
     @logfile.rewind
     msg = @logfile.read
-    u = msg.scan /TCPServer.*(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b),\s(\d+)/
+    u = msg.scan(/TCPServer.*(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b),\s(\d+)/)
     @url = "http://#{u[0][0]}:#{u[0][1]}/api/v1"
     @log_context = "RRakeServer"
     @logfile.rewind

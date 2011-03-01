@@ -14,21 +14,11 @@ describe "TestRules" do
   DOTFOOFILE = "testdata/.foo"
 
   before :all do
-    @verbose = ! ENV['VERBOSE'].nil?
-    if @verbose
-      puts "\n--------------------------------------------------------------------"
-      puts "  Test: #{File.basename __FILE__}\n\n"
-    end
     TestServer.start
   end
 
   after :all do
     ::Rake.application.clear
-    if @verbose
-      puts "\n\n#{TestServer.logfile.path}"
-      puts TestServer.msg_all if ENV['DEBUG']
-      puts "--------------------------------------------------------------------"
-    end
     rm_f "testdata"
   end
   
@@ -37,10 +27,6 @@ describe "TestRules" do
     TestServer.msg
     @runs = nil
     FileList['testdata/*'].uniq.each do |f| rm_r(f, :verbose=>false) end
-  end
-  
-  after :each do
-::Rake.application.options.trace_rules = false
   end
   
   def runs

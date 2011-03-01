@@ -86,60 +86,70 @@ namespace :test do
   ::Rake::TestTask.new(:rake_all) do |t|
     t.test_files = TestFiles::ALL
     t.libs << "."
-    t.warning = true
+    t.warning = true if $-w
   end
   
   Rake::TestTask.new(:units) do |t|
     t.test_files = TestFiles::UNIT
     t.libs << "."
-    t.warning = true
+    t.warning = true if $-w
   end
   
   Rake::TestTask.new(:functional) do |t|
     t.test_files = TestFiles::FUNCTIONAL
     t.libs << "."
-    t.warning = true
+    t.warning = true if $-w
   end
   
   Rake::TestTask.new(:contribs) do |t|
     t.test_files = TestFiles::CONTRIB
     t.libs << "."
-    t.warning = true
+    t.warning = true if $-w
   end
   
   desc "Run all rrake RSpec tests"
   RSpec::Core::RakeTask.new(:rspec_all) do |t|
-    t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
+    t.rspec_opts = ["-r ./spec/spec_helper.rb"]
+    t.rspec_opts << "-f documentation" if ENV['VERBOSE']
     t.pattern = SpecFiles::ALL
     t.verbose = false unless ENV['VERBOSE']
+    t.ruby_opts="-w" if $-w
   end
 
   desc "Run RSpec tests for external libraries that rrake has extended"
   RSpec::Core::RakeTask.new(:rspec_ext) do |t|
-    t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
+    t.rspec_opts = ["-r ./spec/spec_helper.rb"]
+    t.rspec_opts << "-f documentation" if ENV['VERBOSE']
     t.pattern = SpecFiles::EXT
     t.verbose = false unless ENV['VERBOSE']
+    t.ruby_opts="-w" if $-w
   end
 
   desc "Run RSpec tests for internal libraries that don't depend on other internal libraries"
   RSpec::Core::RakeTask.new(:rspec_nodep) do |t|
-    t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
+    t.rspec_opts = ["-r ./spec/spec_helper.rb"]
+    t.rspec_opts << "-f documentation" if ENV['VERBOSE']
     t.pattern = SpecFiles::NODEP
     t.verbose = false unless ENV['VERBOSE']
+    t.ruby_opts="-w" if $-w
   end
 
   desc "Run RSpec tests for the library"
   RSpec::Core::RakeTask.new(:rspec_units) do |t|
-    t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
+    t.rspec_opts = ["-r ./spec/spec_helper.rb"]
+    t.rspec_opts << "-f documentation" if ENV['VERBOSE']
     t.pattern = SpecFiles::UNIT
     t.verbose = false unless ENV['VERBOSE']
+    t.ruby_opts="-w" if $-w
   end
 
   desc "Run functional RSpec tests"
   RSpec::Core::RakeTask.new(:rspec_functional) do |t|
-    t.rspec_opts = ["-f progress", "-r ./spec/spec_helper.rb"]
+    t.rspec_opts = ["-r ./spec/spec_helper.rb"]
+    t.rspec_opts << "-f documentation" if ENV['VERBOSE']
     t.pattern = SpecFiles::FUNCTIONAL
     t.verbose = false unless ENV['VERBOSE']
+    t.ruby_opts="-w" if $-w
   end
 
 end
@@ -151,7 +161,7 @@ begin
     def require(file)
       #puts "Rakefile require(#{file})"
       if file =~ /^rake/
-        file.gsub! /^rake/, 'rrake'
+        file.gsub!(/^rake/, 'rrake')
         #puts "=>  switched to #{file}"
       end
       rrake_orig_require(file)

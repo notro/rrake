@@ -26,11 +26,6 @@ describe ::Rake::RestClient do
   end
   
   before :all do
-    @verbose = ! ENV['VERBOSE'].nil?
-    if @verbose
-      puts "\n--------------------------------------------------------------------"
-      puts "  Test: #{File.basename __FILE__}\n\n"
-    end
     @error = nil
     @log_context = "logging => context"
     @escaped_log_context = ::CGI::escape self.log_context
@@ -64,7 +59,7 @@ describe ::Rake::RestClient do
   end
   
   after :all do
-    if @verbose
+    if false
       puts "\n\nServer log:"
       @srvlogio.rewind
       puts @srvlogio.read
@@ -77,8 +72,6 @@ describe ::Rake::RestClient do
   end
   
   it "should log error message on failure" do
-#  p rget "do_not_exist"
-#  puts "@error: #{@error}"
     expect{ rget "does_not_exist" }.to raise_error Nestful::ResourceNotFound
     @error.should =~ /does_not_exist.*404/
   end
