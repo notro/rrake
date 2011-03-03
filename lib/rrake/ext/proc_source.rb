@@ -1,7 +1,5 @@
 #--
-# This file is from storable: github.com/delano/storable
-# It is extended so we can Marshal Proc's
-#
+# This file is a modified version from storable: github.com/delano/storable
 #
 # Based on:
 # http://github.com/imedo/background
@@ -18,6 +16,8 @@ class ProcString < String
   # Range of lines where the proc is defined
   #   ex. (12..16)
   attr_accessor :lines
+  
+  attr_accessor :arity, :kind     # :nodoc:  FIXME: Should be removed?
   
   # Return a Proc object
   # If #lines and #file is specified, these are tied to the proc.
@@ -43,8 +43,12 @@ class RubyToken::Token
     # These EXPR_BEG tokens don't have associated end tags
   FAKIES = [RubyToken::TkWHEN, RubyToken::TkELSIF, RubyToken::TkTHEN]
   
+  def name
+    @name ||= nil
+  end
+  
   def open_tag?
-    return false if @name.nil? || get_props.nil?
+    return false if name.nil? || get_props.nil?
     a = (get_props[1] == RubyToken::EXPR_BEG) &&
           self.class.to_s !~ /_MOD/  && # ignore onliner if, unless, etc...
           !FAKIES.member?(self.class)  
@@ -52,7 +56,7 @@ class RubyToken::Token
   end
   
   def get_props
-    RubyToken::TkReading2Token[@name]
+    RubyToken::TkReading2Token[name]
   end
   
 end
@@ -62,7 +66,7 @@ end
 #
 module ProcSource
   
-  def self.find(filename, start_line=0, block_only=true)
+  def self.find(filename, start_line=1, block_only=true)
     lines, lexer = nil, nil
     retried = 0
     loop do
@@ -78,7 +82,7 @@ module ProcSource
     end
     stoken, etoken, nesting = nil, nil, 0
     while token = lexer.token
-      n = token.instance_variable_get(:@name)
+      n = token.name
       
       if RubyToken::TkIDENTIFIER === token
         #nothing
@@ -91,6 +95,8 @@ module ProcSource
           break
         end
         nesting -= 1
+      elsif RubyToken::TkLBRACE === token
+        nesting += 1
       elsif RubyToken::TkBITOR === token && stoken
         #nothing
       elsif RubyToken::TkNL === token && stoken && etoken
@@ -136,12 +142,14 @@ module ProcSource
         break
       when RubyToken::TkDO
         success = true
+      when RubyToken::TkfLBRACE
+        success = true
       when RubyToken::TkCONSTANT
-        if token.instance_variable_get(:@name) == "Proc" &&
+        if token.name == "Proc" &&
            lexer.token.is_a?(RubyToken::TkDOT)
           method = lexer.token
           if method.is_a?(RubyToken::TkIDENTIFIER) &&
-             method.instance_variable_get(:@name) == "new"
+             method.name == "new"
             success = true
           end
         end
@@ -151,7 +159,7 @@ module ProcSource
   end
   
   
-  def self.get_lines(filename, start_line = 0)
+  def self.get_lines(filename, start_line = 1)
     case filename
       when nil
         nil
@@ -175,33 +183,53 @@ module ProcSource
   end
 end
 
-class Proc
+class Proc #:nodoc:
   attr_writer :source
   
-  def source_descriptor # :nodoc:
+  def source_descriptor
+    @file ||= nil
+    @line ||= nil
     unless @file && @line
       if md = /^#<Proc:0x[0-9A-Fa-f]+@(.+):(\d+)(.+?)?>$/.match(inspect)
         @file, @line = md.captures
       end
     end
-    [@file, @line.to_i]
+    @line = @line.to_i
+    [@file, @line]
   end
   
-  # Source file
-  def file
-    source_descriptor[0]
-  end
-  
-  # Starting line in source file
-  def line
-    source_descriptor[1]
-  end
-  
-  # Source code. Doesn't work with eval'ed procs
   def source
     @source ||= ProcSource.find(*self.source_descriptor)
   end
   
+  def line
+    source_descriptor
+    @line
+  end
+  
+  def file
+    source_descriptor
+    @file
+  end
+  
+  # Dump to Marshal format.
+  #   p = Proc.new { false }
+  #   Marshal.dump p
+  def _dump(limit)
+    raise "can't dump proc, #source is nil" if source.nil?
+    str = Marshal.dump(source)
+    str
+  end
+  
+  # Load from Marshal format.
+  #   p = Proc.new { false }
+  #   Marshal.load Marshal.dump p
+  def self._load(str)
+    @source = Marshal.load(str)
+    @source.to_proc
+  end
+  
+  # Dump to JSON string
   def to_json(*args)
     raise "can't serialize proc, #source is nil" if source.nil?
     {
@@ -228,3 +256,30 @@ class Proc
   end
   
 end
+
+if $0 == __FILE__
+  def store(&blk)
+    @blk = blk
+  end
+
+  store do |blk|
+    puts "Hello Rudy1"
+  end
+
+  a = Proc.new() { |a|
+    puts  "Hello Rudy2" 
+  }
+ 
+  b = Proc.new() do |b|
+    puts { "Hello Rudy3" } if true
+  end
+  
+  puts @blk.inspect, @blk.source
+  puts [a.inspect, a.source]
+  puts b.inspect, b.source
+  
+  proc = @blk.source.to_proc
+  proc.call(1)
+end
+
+
