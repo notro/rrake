@@ -11,7 +11,7 @@ module Rake
   class FileCreationTask < FileTask
     # Is this file task needed?  Yes if it doesn't exist.
     def needed?
-      ! File.exist?(name)
+      ! file_exist?
     end
 
     # Time stamp for file creation task.  This time stamp is earlier

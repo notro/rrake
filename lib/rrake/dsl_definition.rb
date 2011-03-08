@@ -59,7 +59,9 @@ module Rake
     #   directory "testdata/doc"
     #
     def directory(dir)
+      last_remote = Rake.application.last_remote
       Rake.each_dir_parent(dir) do |d|
+        Rake.application.last_remote = last_remote
         file_create d do |t|
           mkdir_p t.name if ! File.exist?(t.name)
         end
