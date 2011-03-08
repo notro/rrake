@@ -411,26 +411,8 @@ module Rake
     #   task.remote = '192.168.1.1'               # => 'http://192.168.1.1:9292'
     #   task.remote = 'https://server.com/rrake'  # => 'https://server.com:9292/rrake'
     def remote=(value)
-      if value.nil?
-        @remote = nil
-        return
-      end
-      value = value.to_s
-      begin
-        if value =~ URI::ABS_URI
-          r = URI.parse(value)
-          r = URI.parse("http://#{value}") unless r.host
-        else
-          r = URI.parse("http://#{value}")
-        end
-        raise URI::InvalidURIError unless r.host
-      rescue URI::InvalidURIError
-        fail ArgumentError, "illegal value: '#{value}'"
-      end
-      if application.respond_to?(:options)
-        r.port = application.options.port unless value =~ /:\d+/
-      end
-      @remote = r.to_s
+      @remote = TaskManager.verify_remote(value)
+      return unless @remote
       @url = "#{@remote}/api/v1/task/#{URI.escape(name, UNSAFE_ESCAPING_DOT)}"
     end
 

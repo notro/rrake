@@ -69,7 +69,7 @@ module Rake
     end
 
     def synthesize_file_task(task_name, remote=nil)
-      remote ||= verify_remote(@last_remote)
+      remote ||= TaskManager.verify_remote(@last_remote)
       if remote
         return nil unless rget "#{remote}/api/v1/fileexist", :trace => task_name, :file => task_name
       else
@@ -283,7 +283,7 @@ module Rake
 
     # Attempt to create a rule given the list of prerequisites.
     def attempt_rule(task_name, extensions, block, level, remote=nil)
-      remote ||= verify_remote(@last_remote)
+      remote ||= TaskManager.verify_remote(@last_remote)
       sources = make_sources(task_name, extensions)
       prereqs = sources.collect { |source|
         trace_rule level, "Attempting Rule #{task_name} => #{source}#{remote ? ' ('+ remote +')' : ''}"
@@ -371,29 +371,27 @@ module Rake
       $1
     end
 
-    def verify_remote value
-      return nil if value.nil? or value == ""
-      value = value.to_s
-      begin
-        if value =~ URI::ABS_URI
-          r = URI.parse(value)
-          r = URI.parse("http://#{value}") unless r.host
-        else
-          r = URI.parse("http://#{value}")
-        end
-        raise URI::InvalidURIError unless r.host
-      rescue URI::InvalidURIError
-        fail ArgumentError, "illegal value: '#{value}'"
-      end
-      if respond_to?(:options)
-        r.port = options.port unless value =~ /:\d+/
-      end
-      r.to_s
-    end
-
     class << self
       attr_accessor :record_task_metadata
       TaskManager.record_task_metadata = false
+      
+      def verify_remote(value)
+        return nil if value.nil?
+        value = value.to_s
+        begin
+          if value =~ URI::ABS_URI
+            r = URI.parse(value)
+            r = URI.parse("http://#{value}") unless r.host
+          else
+            r = URI.parse("http://#{value}")
+          end
+          raise URI::InvalidURIError unless r.host
+        rescue URI::InvalidURIError
+          fail ArgumentError, "illegal value: '#{value}'"
+        end
+        r.port = Rake.application.options.port unless value =~ /:\d+/
+        r.to_s
+      end
     end
   end
 
