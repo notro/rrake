@@ -279,10 +279,10 @@ module Rake
         hash["output"].each { |std, s|
           case std
             when "stdout"
-              print s unless application.options.silent
+              print s
               type = ""
             when "stderr"
-              $stderr.print s unless application.options.silent
+              $stderr.print s
               type = "stderr: "
             else
               raise "unknown outputtype: #{std} returned from execute '#{url}'"
