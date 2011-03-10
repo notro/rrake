@@ -218,6 +218,16 @@ describe Proc do
       p.source.gsub(/ +/, " ").strip.should == "{ \n # comment\n true # comment\n # comment\n }"
     end
     
+    it "should handle if, elsif, else statement" do
+      p = Proc.new {
+        if false
+        elsif true
+        else
+        end
+      }
+      p.source.gsub(/ +/, " ").strip.should == "{\n if false\n elsif true\n else\n end\n }"
+    end
+    
     describe "#lines" do
       it "should be correct for one line proc" do
         before = __LINE__
