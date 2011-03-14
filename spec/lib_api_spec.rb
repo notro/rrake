@@ -20,14 +20,6 @@ describe Rake::API do
     TestServer.msg
   end
   
-  after :all do
-    if false
-      puts "\n\n#{TestServer.logfile.path}"
-      puts TestServer.msg_all
-      puts "--------------------------------------------------------------------"
-    end
-  end
-  
   it "should be able to get tasks" do
     response = rget "tasks"
     response.should == []

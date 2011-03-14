@@ -44,7 +44,6 @@ module TestServer
   end
   
   def shutdown
-#    @instance ||= nil
     @instance.shutdown if @instance
   end
   
@@ -90,7 +89,7 @@ class RRakeServer
     rm_f logfile
     touch logfile
 
-    @verbose = ! ENV['VERBOSE'].nil?
+    @verbose = ENV['VERBOSE']
     env = ENV['DEBUG'] ? "development" : "test"
     cmd = "#{RUBY} -Ilib bin/rrake --log #{logfile}:all --server --host 127.0.0.1 -s webrick -E #{env}"
     puts "Starting server: #{cmd}\n\n" if @verbose
@@ -98,12 +97,8 @@ class RRakeServer
     @logfile = File.open logfile
     timeout = 0
     msg = ''
-    chars = %w{ | / - \\ }
     while msg !~ /pid/
-      print chars[0]
       sleep 0.1
-      print "\b"
-      chars.push chars.shift
       msg = @logfile.read
       if msg =~/stack trace/
         @logfile.rewind
@@ -133,7 +128,7 @@ class RRakeServer
       fail "could not shutdown server" if Process.kill('KILL', pid) == []
     else
       Process.kill 'INT', pid
-      sleep 0.1
+      sleep 0.5
       fail "could not shutdown server" unless @logfile.read =~ /shutdown/
     end
   end

@@ -6,15 +6,6 @@ describe "TestMultiTask" do
     TestServer.start
   end
   
-  after :all do
-    ::Rake.application.clear
-    if false
-      puts "\n\n#{TestServer.logfile.path}"
-      puts TestServer.msg_all if ENV['DEBUG']
-      puts "--------------------------------------------------------------------"
-    end
-  end
-  
   before :each do
     ::Rake.application.clear
     TestServer.msg

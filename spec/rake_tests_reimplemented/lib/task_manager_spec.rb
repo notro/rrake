@@ -8,33 +8,35 @@ describe "TestTaskManager" do
   
   after :all do
     ::Rake.application.clear
-    if false
-      puts "\n\n#{TestServer.logfile.path}"
-      puts TestServer.msg_all if ENV['DEBUG']
-      puts "--------------------------------------------------------------------"
-    end
-    rm_f "testdata"
   end
   
   before :each do
     ::Rake.application.clear
+    @runs = nil
     TestServer.msg
   end
   
-  xit "test_correctly_scoped_prerequisites_are_invoked" do
+  def runs
+    return @runs unless @runs.nil?
+    @runs = []
+    @msg = TestServer.msg
+    fatal = @msg.lines.select { |l| l.include? "FATAL"}
+    fatal.each { |f| m = f.match(/--(.+)--/); @runs << m[1] if m }
+    @runs
+  end
+  
+  it "test_correctly_scoped_prerequisites_are_invoked" do
+    remote = "127.0.0.1:#{::Rake.application.options.port}"
     @tm = ::Rake::Application.new
-    @tm.last_remote = "127.0.0.1"
-    @tm.define_task(::Rake::Task, :z) #do puts "top z" end
-puts "\n\nurl: #{@tm['z'].url}\n\n"
-puts TestServer.msg
+    @tm.last_remote = remote
+    @tm.define_task(::Rake::Task, :z) do |t| t.fatal "--top z--" end
     @tm.in_namespace("a") do
-      @tm.define_task(::Rake::Task, :z) do puts "next z" end
+      @tm.last_remote = remote
+      @tm.define_task(::Rake::Task, :z) do |t| t.fatal "--next z--" end
+      @tm.last_remote = remote
       @tm.define_task(::Rake::Task, :x => :z)
     end
-
-    out = capture_stdout { 
     @tm["a:x"].invoke
-    }
-    out.should == "next z\n"
+    runs.should == ["next z"]
   end
 end

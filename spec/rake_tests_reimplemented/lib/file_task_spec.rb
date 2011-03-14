@@ -13,12 +13,6 @@ describe "TestFileTask" do
   end
   
   after :all do
-    ::Rake.application.clear
-    if false
-      puts "\n\n#{TestServer.logfile.path}"
-      puts TestServer.msg_all if ENV['DEBUG']
-      puts "--------------------------------------------------------------------"
-    end
     rm_f "testdata"
   end
   
@@ -27,7 +21,7 @@ describe "TestFileTask" do
     TestServer.msg
   end
   
-  xit "test_file_times_old_depends_on_new" do
+  it "test_file_times_old_depends_on_new" do
     create_timed_files(::FileCreation::OLDFILE, ::FileCreation::NEWFILE)
 
     remote "127.0.0.1"
@@ -71,28 +65,46 @@ describe "TestDirectoryTask" do
     TestServer.msg
   end
   
+  it "test_directory" do
+    ::Rake::TaskManager.record_task_metadata = true
+    desc "DESC"
+    remote "127.0.0.1"
+    directory "testdata/a/b/c"
+    ::Rake::Task["testdata"].class.should ==       ::Rake::FileCreationTask
+    ::Rake::Task["testdata/a"].class.should ==     ::Rake::FileCreationTask
+    ::Rake::Task["testdata/a/b/c"].class.should == ::Rake::FileCreationTask
+    ::Rake::Task["testdata"].comment.should ==       nil
+    ::Rake::Task["testdata/a/b/c"].comment.should == "DESC"
+    ::Rake::Task["testdata/a/b"].comment.should ==   nil
+    verbose(false) {
+      ::Rake::Task["testdata/a/b"].invoke
+    }
+    File.exist?("testdata/a/b").should ==   true
+    File.exist?("testdata/a/b/c").should == false
+    ::Rake::TaskManager.record_task_metadata = false
+  end
+
   if ::Rake::Win32.windows?
-    xit "test_directory_win32" do
+    it "test_directory_win32" do
+      ::Rake::TaskManager.record_task_metadata = true
       desc "WIN32 DESC"
       FileUtils.mkdir_p("testdata")
       Dir.chdir("testdata") do
         remote "127.0.0.1"
         directory 'c:/testdata/a/b/c'
-::Rake.application.tasks.each { |name|
-puts ::Rake::Task[name].investigation
-}
-       ::Rake::Task['c:/testdata'].class.should == ::Rake::FileCreationTask
-        ::Rake::Task['c:/testdata/a'].class.should == ::Rake::FileCreationTask
+        ::Rake::Task['c:/testdata'].class.should ==       ::Rake::FileCreationTask
+        ::Rake::Task['c:/testdata/a'].class.should ==     ::Rake::FileCreationTask
         ::Rake::Task['c:/testdata/a/b/c'].class.should == ::Rake::FileCreationTask
-        ::Rake::Task['c:/testdata'].comment.should == nil
+        ::Rake::Task['c:/testdata'].comment.should ==       nil
         ::Rake::Task['c:/testdata/a/b/c'].comment.should == "WIN32 DESC"
-        ::Rake::Task['c:/testdata/a/b'].comment.should == nil
+        ::Rake::Task['c:/testdata/a/b'].comment.should ==   nil
         verbose(false) {
           ::Rake::Task['c:/testdata/a/b'].invoke
         }
-        File.exist?('c:/testdata/a/b').should == true
+        File.exist?('c:/testdata/a/b').should ==   true
         File.exist?('c:/testdata/a/b/c').should == false
       end
+      ::Rake::TaskManager.record_task_metadata = false
     end
   end
 end

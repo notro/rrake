@@ -14,14 +14,16 @@ describe "SessionBasedTests" do
   RUBY_COMMAND = 'ruby'
   
   before :all do
+    @verbose = ENV['VERBOSE']
     TestServer.start
     @rake_path = File.expand_path("bin/rrake")
     lib_path = File.expand_path("lib")
     @ruby_options = ["-I#{lib_path}", "-I."]
+    ENV['RAKE_REMOTE'] = "http://127.0.0.1:9292"
   end
   
   after :all do
-    ::Rake.application.clear
+    ENV['RAKE_REMOTE'] = nil
     rm_f "testdata"
   end
   
@@ -30,61 +32,66 @@ describe "SessionBasedTests" do
     TestServer.msg
   end
   
-  xit "test_by_default_rakelib_files_are_included" do
+  it "test_by_default_rakelib_files_are_included" do
     in_environment('RAKE_SYSTEM' => 'test/data/sys') do
       rake '-T', 'extra'
     end
-    assert_match %r{extra:extra}, @out
+    @out.should =~ /extra:extra/
   end
 
-  xit "test_dash_f_with_no_arg_foils_rakefile_lookup" do
+  it "test_dash_f_with_no_arg_foils_rakefile_lookup" do
     rake "-I test/data/rakelib -rtest1 -f"
-    assert_match(/^TEST1$/, @out)
+    @out.should =~ /^TEST1$/
   end
 
-  xit "test_dot_rake_files_can_be_loaded_with_dash_r" do
+  it "test_dot_rake_files_can_be_loaded_with_dash_r" do
     rake "-I test/data/rakelib -rtest2 -f"
-    assert_match(/^TEST2$/, @out)
+    @out.should =~ /^TEST2$/
   end
 
-  xit "test_file_task_dependencies_scoped_by_namespaces" do
+  it "test_file_task_dependencies_scoped_by_namespaces" do
   begin
-    in_environment("PWD" => "test/data/namespace") do
-      rake "scopedep.rb"
-      assert_match(/^PREPARE\nSCOPEDEP$/m, @out)
+    TestServer.chdir("test/data/namespace") do
+      in_environment("PWD" => "test/data/namespace") do
+        rake "scopedep.rb"
+        @out.should =~ /^PREPARE\nSCOPEDEP$/m
+      end
     end
   ensure
     remove_namespace_files
   end
   end
   
-  xit "test_imports" do
+  it "test_imports" do
     open("test/data/imports/static_deps", "w") do |f|
       f.puts 'puts "STATIC"'
     end
     FileUtils.rm_f "test/data/imports/dynamic_deps"
-    in_environment("PWD" => "test/data/imports") do
-      rake
+    TestServer.chdir("test/data/imports") do
+      in_environment("PWD" => "test/data/imports") do
+        rake
+      end
     end
-    assert File.exist?("test/data/imports/dynamic_deps"),
-      "'dynamic_deps' file should exist"
-    assert_match(/^FIRST$\s+^DYNAMIC$\s+^STATIC$\s+^OTHER$/, @out)
-    assert_status
+    File.exist?("test/data/imports/dynamic_deps").should == true
+    @out.should =~ /^FIRST$\s+^DYNAMIC$\s+^STATIC$\s+^OTHER$/
+    @status.should == 0
     FileUtils.rm_f "test/data/imports/dynamic_deps"
     FileUtils.rm_f "test/data/imports/static_deps"
   end
 
-  xit "test_no_system" do
+  it "test_no_system" do
     in_environment('RAKE_SYSTEM' => 'test/data/sys') do
       rake '-G', "sys1"
     end
-    assert_match %r{^Don't know how to build task}, @err # emacs wart: '
+    @err =~ /^Don't know how to build task/
   end
 
   it "test_rules_chaining_to_file_task" do
     remove_chaining_files
-    in_environment("PWD" => "test/data/chains") do
-      rake
+    TestServer.chdir("test/data/chains") do
+      in_environment("PWD" => "test/data/chains") do
+        rake
+      end
     end
     File.exist?("test/data/chains/play.app").should == true
     @status.should == 0

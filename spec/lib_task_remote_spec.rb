@@ -13,11 +13,6 @@ describe "Rake::Task with remote" do
   
   after :all do
     ::Rake.application.clear
-    if false
-      puts "\n\n#{TestServer.logfile.path}"
-      puts TestServer.msg_all
-      puts "--------------------------------------------------------------------"
-    end
   end
   
   ["task",

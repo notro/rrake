@@ -38,11 +38,6 @@ describe "Rake test cases running as remote tasks" do
   after :all do
     ENV['RAKE_REMOTE'] = nil  
     ::Rake.application.clear
-    if false
-      puts "\n\n#{TestServer.logfile.path}"
-      puts TestServer.msg_all
-      puts "--------------------------------------------------------------------"
-    end
   end
   
   it "should run" do
@@ -50,7 +45,7 @@ describe "Rake test cases running as remote tasks" do
       t.test_files = TestFiles::ALL
       t.libs << "."
       t.warning = true if $-w
-#      t.verbose = true
+      t.verbose = true if ENV['VERBOSE']
     end
     t = ::Rake::Task[:rake_standard]
     ENV['RAKE_REMOTE'] = "http://127.0.0.1:9292"

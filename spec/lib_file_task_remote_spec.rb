@@ -30,11 +30,6 @@ describe "Rake::FileTask with remote" do
   after :all do
     rm_rf 'testdata/server'
     ::Rake.application.clear
-    if false
-      puts "\n\n#{TestServer.logfile.path}"
-      puts TestServer.msg_all
-      puts "--------------------------------------------------------------------"
-    end
   end
   
   it "should not execute if file exist" do
