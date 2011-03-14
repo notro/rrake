@@ -99,7 +99,7 @@ describe "Rake::Task with remote" do
     ts = t.timestamp
     ts.should < (Time.now + 1)
     ts.should > (Time.now - 2)
-    TestServer.msg.should =~ /INFO.*task1.*#{ts.to_i}/
+    TestServer.msg.should =~ /INFO.*task1_timestamp.*#{Regexp.escape ts.iso8601(3)}/
   end
   
   it "should get task needed?" do

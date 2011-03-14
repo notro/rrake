@@ -96,9 +96,9 @@ describe Rake::API do
   
   it "should get task timestamp" do
     rpost("task/timestamptask", {:klass => ::Rake::Task.to_s})
-    unix_time = rget("task/timestamptask/timestamp")
-    Time.at(unix_time).should < (Time.now + 1)
-    Time.at(unix_time).should > (Time.now - 2)
+    ts = Time.parse rget("task/timestamptask/timestamp")
+    ts.should < (Time.now + 1)
+    ts.should > (Time.now - 2)
   end
   
   it "should get task needed?" do

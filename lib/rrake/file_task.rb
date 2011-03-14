@@ -37,7 +37,7 @@ module Rake
     def file_mtime
       if remote
         create_remote_task
-        Time.at rget "file_mtime"
+        Time.parse rget "file_mtime"
       else
         File.mtime(name.to_s)
       end

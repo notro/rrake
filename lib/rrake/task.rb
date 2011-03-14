@@ -358,7 +358,7 @@ module Rake
       return t if t
       if remote
         create_remote_task
-        Time.at rget("timestamp")
+        Time.parse rget("timestamp")
       else
         Time.now
       end
