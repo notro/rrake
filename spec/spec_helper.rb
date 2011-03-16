@@ -85,13 +85,13 @@ class RRakeServer
 
   def initialize
     logfile = 'testserver/server.log'
-    mkdir_p File.dirname logfile
-    rm_f logfile
-    touch logfile
+    FileUtils.mkdir_p File.dirname logfile
+    FileUtils.rm_f logfile
+    FileUtils.touch logfile
 
     @verbose = ENV['VERBOSE']
     env = ENV['DEBUG'] ? "development" : "test"
-    cmd = "#{RUBY} -Ilib bin/rrake --log #{logfile}:all --server --host 127.0.0.1 -s webrick -E #{env}"
+    cmd = "#{FileUtils::RUBY} -Ilib bin/rrake --log #{logfile}:all --server --host 127.0.0.1 -s webrick -E #{env}"
     puts "Starting server: #{cmd}\n\n" if @verbose
     @pipe = IO.popen(cmd)
     @logfile = File.open logfile
@@ -141,4 +141,4 @@ end
   end
 end
 
-Rake.application.init
+Rake.application.options.port = Rake::Application::DEFAULT_PORT

@@ -1,6 +1,7 @@
 
 describe "Rake::FileTask with remote" do
   include CaptureStdout
+  include ::Rake::DSL
   
   def create_dir(dirname)
     FileUtils.mkdir_p(dirname) unless File.exist?(dirname)
@@ -18,7 +19,7 @@ describe "Rake::FileTask with remote" do
   end
 
   before :all do
-    rm_rf 'testdata/server'
+    FileUtils.rm_rf 'testdata/server'
     TestServer.start
   end
   
@@ -28,7 +29,7 @@ describe "Rake::FileTask with remote" do
   end
   
   after :all do
-    rm_rf 'testdata/server'
+    FileUtils.rm_rf 'testdata/server'
     ::Rake.application.clear
   end
   
