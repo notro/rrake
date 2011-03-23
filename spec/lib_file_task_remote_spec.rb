@@ -1,7 +1,6 @@
 
 describe "Rake::FileTask with remote" do
   include CaptureStdout
-  include ::Rake::DSL
   
   def create_dir(dirname)
     FileUtils.mkdir_p(dirname) unless File.exist?(dirname)

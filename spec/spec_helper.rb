@@ -1,15 +1,42 @@
-require 'tmpdir'
-require 'rrake'
-require 'rrake/win32'
+$LOAD_PATH << '.'
 
-begin
-  require 'win32/process' if Rake::Win32.windows?
-rescue LoadError
-  fail "win32-process gem is needed on Windows"
+# Make sure rake or test/unit is not loaded in the unit tests
+module ::Kernel
+  alias :helper_orig_require :require
+  def require(file)
+    return true if file =~ /^test\/unit|^rake/
+    helper_orig_require(file)
+  end 
 end
 
-require './test/capture_stdout'
-require './test/in_environment'
+
+require 'rrake'
+require 'spec/testserver.rb'
+require 'test/capture_stdout'
+require 'test/in_environment'
+require 'rspec/unit'
+
+
+module Test
+  module Unit
+    TestCase = RSpec::Unit::TestCase
+    Assertions = RSpec::Unit::Assertions
+  end
+end
+
+
+class RSpec::Unit::TestCase
+  include ::Rake::DSL
+end
+
+
+class RSpec::Core::ExampleGroup
+  include ::Rake::DSL
+  
+  def name
+    example.metadata[:description]
+  end
+end
 
 
 module CommandHelp
@@ -29,116 +56,71 @@ module CommandHelp
 end
 
 
-module TestServer
-  @instance = nil
-  
-  extend self
-  
-  def instance
-    @instance ||= RRakeServer.new
-  end
-  
-  def start
-    instance
-    @fpos = logfile.tell
-  end
-  
-  def shutdown
-    @instance.shutdown if @instance
-  end
-  
-  def logfile
-    instance.logfile
-  end
-  
-  def msg_all
-    logfile.pos = @fpos
-    logfile.read
-  end
-  
-  def msg
-    logfile.read
-  end
-  
-  def pwd
-    @instance.rget "pwd"
-  end
-  
-  def chdir(dir, &block)
-    olddir = pwd if block_given?
-    @instance.rput "chdir", :dir => dir
-    if block_given?
-      begin
-        yield
-      ensure
-        @instance.rput "chdir", :dir => olddir
-      end
-    end
-  end
-end
 
+Rake.application.options.port = Rake::Application::DEFAULT_PORT
 
-class RRakeServer
-  include Rake::RestClient
-  
-  attr_reader :logfile, :pid, :url, :log_context
+# Run all tests
+::RSpec.world.runs << []
 
-  def initialize
-    logfile = 'testserver/server.log'
-    FileUtils.mkdir_p File.dirname logfile
-    FileUtils.rm_f logfile
-    FileUtils.touch logfile
-
-    @verbose = ENV['VERBOSE']
-    env = ENV['DEBUG'] ? "development" : "test"
-    cmd = "#{FileUtils::RUBY} -Ilib bin/rrake --log #{logfile}:all --server --host 127.0.0.1 -s webrick -E #{env}"
-    puts "Starting server: #{cmd}\n\n" if @verbose
-    @pipe = IO.popen(cmd)
-    @logfile = File.open logfile
-    timeout = 0
-    msg = ''
-    while msg !~ /pid/
-      sleep 0.1
-      msg = @logfile.read
-      if msg =~/stack trace/
-        @logfile.rewind
-        $stderr.puts "\n\n#{@logfile.path}:"
-        $stderr.puts @logfile.read
-        fail "rrake aborted, could not start server #{msg =~ /bind/ ? '(port in use?)' : ''}"
-      end
-      timeout += 1
-      fail "timeout, could not start server" if timeout > 600
-    end
-    @logfile.rewind
-    msg = @logfile.read
-    u = msg.scan(/TCPServer.*(\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b),\s(\d+)/)
-    @url = "http://#{u[0][0]}:#{u[0][1]}/api/v1"
-    @log_context = "RRakeServer"
-    @logfile.rewind
-  end
-
-  def pid
-    @pipe.pid
-  end
-
-  def shutdown
-    if Rake::Win32.windows?
-      # win32/process, Process.kill:
-      #   'INT' works only if the process was created with the CREATE_NEW_PROCESS_GROUP flag.
-      fail "could not shutdown server" if Process.kill('KILL', pid) == []
-    else
-      Process.kill 'INT', pid
-      sleep 0.5
-      fail "could not shutdown server" unless @logfile.read =~ /shutdown/
-    end
-  end
-end
+# Run test unit test as remote tasks excluding tests in rake_tests_removed.rb
+::RSpec.world.runs << [
+  {:test_unit => true}, 
+  {:not_remote => true}, 
+  lambda {
+    puts "\nRAKE_REMOTE = http://127.0.0.1:9292" if ENV['VERBOSE']
+    TestServer.start 
+    ENV['RAKE_REMOTE'] = "http://127.0.0.1:9292"
+  },
+  lambda {
+    ENV['RAKE_REMOTE'] = nil
+  }
+]
 
 
 ::RSpec.configure do |config|
+  
+  config.before(:suite) do
+    def add_meta(item, key, value)
+      item.metadata[key] = value
+      item.metadata[:example_group][key] = value if item.metadata[:example_group]
+      item.examples.each { |example| example.metadata[key] = value; example.metadata[:example_group][key] = value if example.metadata[:example_group] }
+      item.children { |child| add_meta child, key, value }
+    end
+    
+    def add_meta_if_example(group, key, group_desc, example_desc)
+      group.children.each { |g| add_meta_if_example g, key, group_desc, example_desc }
+      if group.metadata[:example_group][:description].to_s == group_desc.to_s
+        group.examples.each { |example|
+          if example.metadata[:description].to_s == example_desc.to_s
+            example.metadata[key] = true
+            example.metadata[:example_group][key] = true
+          end
+        }
+      end
+    end
+    
+    @not_remote = []
+    def test_reimplemented(klass, test)
+      @not_remote << [klass, test]
+    end
+    
+    def test_not_reimplemented(klass, test)
+      @not_remote << [klass, test]
+    end
+    
+    load "./spec/rake_tests_removed.rb"
+    
+    RSpec.world.example_groups.each { |group|
+      @not_remote.each { |klass, test|
+        add_meta_if_example group, :not_remote, klass, test
+      }
+      add_meta(group, :not_remote, true) if group.metadata[:example_group][:caller][0].include? "test/lib/rules_test.rb"
+    }
+  end
+  
   config.after(:suite) do
     TestServer.shutdown
   end
+  
 end
 
-Rake.application.options.port = Rake::Application::DEFAULT_PORT

@@ -1,6 +1,5 @@
 
 describe Rake::Application do
-  include ::Rake::DSL
   
   before :each do
     ::Rake.application.clear

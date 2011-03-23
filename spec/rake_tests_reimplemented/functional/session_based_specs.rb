@@ -24,7 +24,7 @@ describe "SessionBasedTests" do
   
   after :all do
     ENV['RAKE_REMOTE'] = nil
-    rm_f "testdata"
+    FileUtils.rm_f "testdata"
   end
   
   before :each do

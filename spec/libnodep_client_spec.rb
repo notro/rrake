@@ -29,7 +29,7 @@ describe ::Rake::RestClient do
     @error = nil
     @log_context = "logging => context"
     @escaped_log_context = ::CGI::escape self.log_context
-    @url = "http://localhost:#{::Rake.application.options.port}"
+    @url = "http://localhost:#{::Rake.application.options.port + 1}"
     current_verbose = $VERBOSE
     $VERBOSE = false
     @srvlog = ::Log4r::Logger.new "resttest"
@@ -39,7 +39,7 @@ describe ::Rake::RestClient do
     $VERBOSE = current_verbose
     @srvthr = Thread.new do
       @srv = ::Rack::Server.new
-      @srv.options[:Port] = ::Rake.application.options.port
+      @srv.options[:Port] = ::Rake.application.options.port + 1
       @srv.options[:Logger] = @srvlog
       @srv.options[:server] = 'webrick'
       @srv.options[:environment] = 'test'

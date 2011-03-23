@@ -1,9 +1,7 @@
-# test/lib/file_task_test.rb
-
-require "./test/filecreation"
+require "test/filecreation"
 
 
-describe "TestFileTask" do
+describe "TestFileTask reimplemented" do
   include FileCreation
   
   before :all do
@@ -13,7 +11,7 @@ describe "TestFileTask" do
   end
   
   after :all do
-    rm_f "testdata"
+    FileUtils.rm_f "testdata"
   end
   
   before :each do
@@ -51,7 +49,8 @@ describe "TestFileTask" do
   end
 end
 
-describe "TestDirectoryTask" do
+
+describe "TestDirectoryTask reimplemented" do
   before :all do
     ::Rake.rm_rf "testdata", :verbose=>false
   end

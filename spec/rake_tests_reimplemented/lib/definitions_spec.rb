@@ -1,7 +1,7 @@
 # test/lib/definitions_test.rb
 
 
-describe "TestDefinitions" do
+describe "TestDefinitions reimplemented" do
   include CaptureStdout
 
   EXISTINGFILE = "testdata/existing"
@@ -12,7 +12,7 @@ describe "TestDefinitions" do
   
   after :all do
     ::Rake.application.clear
-    rm_f "testdata"
+    FileUtils.rm_f "testdata"
   end
   
   before :each do

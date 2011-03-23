@@ -1,7 +1,6 @@
-# test/lib/multitask_test.rb
 
-
-describe "TestMultiTask" do
+describe "TestMultiTask reimplemented" do
+  
   before :all do
     TestServer.start
   end

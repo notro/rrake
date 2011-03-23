@@ -1,7 +1,6 @@
 
 describe "Rake::Task with remote" do
   include CaptureStdout
-  include ::Rake::DSL
   
   before :all do
     TestServer.start

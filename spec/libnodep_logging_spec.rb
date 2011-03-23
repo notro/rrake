@@ -211,7 +211,6 @@ end
 
 
 describe Rake::Task do
-  include ::Rake::DSL
   
   before :all do
     ::Rake.application.instance_variable_set "@log", ::Rake.application.log_init(::Rake.application.name)

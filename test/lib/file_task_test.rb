@@ -97,10 +97,12 @@ class TestDirectoryTask < Test::Unit::TestCase
   include Rake
 
   def setup
+    Rake::TaskManager.record_task_metadata = true
     Rake.rm_rf "testdata", :verbose=>false
   end
 
   def teardown
+    Rake::TaskManager.record_task_metadata = false
     Rake.rm_rf "testdata", :verbose=>false
   end
 

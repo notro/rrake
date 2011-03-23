@@ -1,7 +1,7 @@
 # test/lib/application_test.rb
 
 
-describe "TestApplication" do
+describe "TestApplication reimplemented" do
   include CaptureStdout
   include InEnvironment
   
@@ -12,7 +12,7 @@ describe "TestApplication" do
   end
   
   after :all do
-    rm_f "testdata"
+    FileUtils.rm_f "testdata"
   end
   
   before :each do

@@ -49,7 +49,7 @@ SRC_RB = FileList['lib/**/*.rb']
 
 # The default task is run if rrake is given no explicit arguments.
 
-desc "Default Task"
+desc "Run all tests"
 task :default => "test:all"
 
 # Test Tasks ---------------------------------------------------------
@@ -63,93 +63,44 @@ task :tc => "test:contribs"
 task :test => "test:units"
 
 module TestFiles
-  UNIT = FileList['test/lib/*_test.rb']
-  FUNCTIONAL = FileList['test/functional/*_test.rb']
-  CONTRIB = FileList['test/contrib/test*.rb']
-  TOP = FileList['test/*_test.rb']
-  ALL = TOP + UNIT + FUNCTIONAL + CONTRIB
-end
-
-module SpecFiles
   EXT = FileList['spec/libext_*_spec.rb']
   NODEP = EXT + FileList['spec/libnodep_*_spec.rb']
-  UNIT = NODEP + FileList['spec/lib_*_spec.rb'] + FileList['spec/rake_tests_reimplemented/lib/*_spec.rb']
-  FUNCTIONAL = FileList['spec/functional_*_spec.rb'] + FileList['spec/rake_tests_reimplemented/functional/*_spec.rb']
-  ALL = UNIT + FUNCTIONAL
+  UNIT = FileList['test/lib/*_test.rb'] + FileList['spec/lib_*_spec.rb'] + FileList['spec/rake_tests_reimplemented/lib/*_spec.rb']
+  FUNCTIONAL = FileList['test/functional/*_test.rb'] + FileList['spec/functional_*_spec.rb'] + FileList['spec/rake_tests_reimplemented/functional/*_spec.rb']
+  CONTRIB = FileList['test/contrib/test*.rb']
+  TOP = FileList['test/*_test.rb']
+  ALL = EXT + NODEP + UNIT + FUNCTIONAL + CONTRIB + TOP
+  TASKS = { :all => ALL, :top => TOP, :contrib => CONTRIB, :functional => FUNCTIONAL, :units => UNIT, :nodep => NODEP, :ext => EXT }
 end
 
 namespace :test do
-  desc "Run all tests"
-  task :all => [:rake_all, :rspec_all]
-  desc "Run all standard rake tests"
-  task :rake_all
-  ::Rake::TestTask.new(:rake_all) do |t|
-    t.test_files = TestFiles::ALL
-    t.libs << "."
-    t.warning = true if $-w
-  end
+  TestFiles::TASKS.each { |task, files|
+    RSpec::Core::RakeTask.new(task) do |t|
+      t.rspec_path = "./spec/runner.rb"
+      t.rspec_opts = ["-r ./spec/spec_helper.rb"]
+      t.rspec_opts << "-f documentation" if ENV['VERBOSE']
+      t.pattern = files
+      t.verbose = false unless ENV['VERBOSE']
+      t.ruby_opts="-w" if $-w
+    end
+  }
   
-  Rake::TestTask.new(:units) do |t|
-    t.test_files = TestFiles::UNIT
-    t.libs << "."
-    t.warning = true if $-w
-  end
-  
-  Rake::TestTask.new(:functional) do |t|
-    t.test_files = TestFiles::FUNCTIONAL
-    t.libs << "."
-    t.warning = true if $-w
-  end
-  
-  Rake::TestTask.new(:contribs) do |t|
-    t.test_files = TestFiles::CONTRIB
-    t.libs << "."
-    t.warning = true if $-w
-  end
-  
-  desc "Run all rrake RSpec tests"
-  RSpec::Core::RakeTask.new(:rspec_all) do |t|
-    t.rspec_opts = ["-r ./spec/spec_helper.rb"]
-    t.rspec_opts << "-f documentation" if ENV['VERBOSE']
-    t.pattern = SpecFiles::ALL
-    t.verbose = false unless ENV['VERBOSE']
-    t.ruby_opts="-w" if $-w
-  end
-
-  desc "Run RSpec tests for external libraries that rrake has extended"
-  RSpec::Core::RakeTask.new(:rspec_ext) do |t|
-    t.rspec_opts = ["-r ./spec/spec_helper.rb"]
-    t.rspec_opts << "-f documentation" if ENV['VERBOSE']
-    t.pattern = SpecFiles::EXT
-    t.verbose = false unless ENV['VERBOSE']
-    t.ruby_opts="-w" if $-w
-  end
-
-  desc "Run RSpec tests for internal libraries that don't depend on other internal libraries"
-  RSpec::Core::RakeTask.new(:rspec_nodep) do |t|
-    t.rspec_opts = ["-r ./spec/spec_helper.rb"]
-    t.rspec_opts << "-f documentation" if ENV['VERBOSE']
-    t.pattern = SpecFiles::NODEP
-    t.verbose = false unless ENV['VERBOSE']
-    t.ruby_opts="-w" if $-w
-  end
-
-  desc "Run RSpec tests for the library"
-  RSpec::Core::RakeTask.new(:rspec_units) do |t|
-    t.rspec_opts = ["-r ./spec/spec_helper.rb"]
-    t.rspec_opts << "-f documentation" if ENV['VERBOSE']
-    t.pattern = SpecFiles::UNIT
-    t.verbose = false unless ENV['VERBOSE']
-    t.ruby_opts="-w" if $-w
-  end
-
-  desc "Run functional RSpec tests"
-  RSpec::Core::RakeTask.new(:rspec_functional) do |t|
-    t.rspec_opts = ["-r ./spec/spec_helper.rb"]
-    t.rspec_opts << "-f documentation" if ENV['VERBOSE']
-    t.pattern = SpecFiles::FUNCTIONAL
-    t.verbose = false unless ENV['VERBOSE']
-    t.ruby_opts="-w" if $-w
+  # Make sure each test can run on it's own
+  desc "run each testfile individually in its own ruby instance"
+  individual = task 'individual' do
+    (FileList['spec/**/*_spec.rb'] + FileList['test/**/*_test.rb']).each { |file|
+      $stderr.puts "\n\n"
+      RSpec::Core::RakeTask.new(file) do |t|
+        t.rspec_path = "./spec/runner.rb"
+        t.rspec_opts = ["-r ./spec/spec_helper.rb"]
+        t.rspec_opts << "-f documentation" if ENV['VERBOSE']
+        t.pattern = file
+        t.verbose = true
+        t.ruby_opts="-w" if $-w
+      end
+      task = Task[file]
+      task.invoke
+    }
   end
 
 end

@@ -1,9 +1,7 @@
-# test/lib/rules_test.rb
-
-require "./test/filecreation"
+require "test/filecreation"
 
 
-describe "TestRules" do
+describe "TestRules reimplemented" do
   include FileCreation
   
   SRCFILE  = "testdata/abc.c"
@@ -19,14 +17,14 @@ describe "TestRules" do
 
   after :all do
     ::Rake.application.clear
-    rm_f "testdata"
+    FileUtils.rm_f "testdata"
   end
   
   before :each do
     ::Rake.application.clear
     TestServer.msg
     @runs = nil
-    FileList['testdata/*'].uniq.each do |f| rm_r(f, :verbose=>false) end
+    FileList['testdata/*'].uniq.each do |f| FileUtils.rm_r(f, :verbose=>false) end
   end
   
   def runs
@@ -266,9 +264,6 @@ describe "TestRules" do
   end
 
   it "test_rule_with_two_sources_builds_both_sources" do
-#::Rake.application.options.trace_rules = true
-#::Rake.application.options.trace = true
-#p Dir.entries('testdata')
     remote "127.0.0.1"
     task 'x.aa'
     remote
@@ -284,19 +279,7 @@ describe "TestRules" do
     end
     remote
     ::Rake::Task["x.c"].invoke
-#puts ::Rake::Task["x.c"].investigation
-#puts ::Rake::Task["x.a"].investigation
-#puts ::Rake::Task["x.b"].investigation
-#puts ::Rake::Task["x.aa"].investigation
-#puts ::Rake::Task["x.bb"].investigation
-
-
-
-#      assert_equal ["A", "B", "C"], @runs.sort
-#runs
-#@msg.lines { |l| puts l unless l =~ /accept|invoked|- -|close/ }
     runs.should == ["A", "B", "C"]
-#::Rake.application.options.trace = false
   end
 
   it "test_second_rule_runs_when_first_rule_doesnt" do

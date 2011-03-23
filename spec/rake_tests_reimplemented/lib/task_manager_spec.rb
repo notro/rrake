@@ -1,7 +1,5 @@
-# test/lib/task_manager_test.rb
 
-
-describe "TestTaskManager" do
+describe "TestTaskManager reimplemented" do
   before :all do
     TestServer.start
   end

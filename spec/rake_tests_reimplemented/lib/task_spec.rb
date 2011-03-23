@@ -1,7 +1,5 @@
-# test/lib/task_test.rb
 
-
-describe "TestTask" do
+describe "TestTask reimplemented" do
   include CaptureStdout
   
   before :all do
@@ -11,7 +9,7 @@ describe "TestTask" do
   
   after :all do
     ::Rake.application.clear
-    rm_f "testdata"
+    FileUtils.rm_f "testdata"
     ::Rake::TaskManager.record_task_metadata = false
   end
   
@@ -104,7 +102,7 @@ describe "TestTask" do
 end  
 
 
-describe "TestTaskWithArguments" do
+describe "TestTaskWithArguments reimplemented" do
   include CaptureStdout
   
   before :all do
@@ -114,7 +112,7 @@ describe "TestTaskWithArguments" do
   
   after :all do
     ::Rake.application.clear
-    rm_f "testdata"
+    FileUtils.rm_f "testdata"
     ::Rake::TaskManager.record_task_metadata = false
   end
   

@@ -2,11 +2,11 @@
 
 require 'test/unit'
 require 'rrake'
-require 'rrake/clean'
 
 class TestClean < Test::Unit::TestCase
   include Rake
   def test_clean
+    require 'rrake/clean'
     assert Task['clean'], "Should define clean"
     assert Task['clobber'], "Should define clobber"
     assert Task['clobber'].prerequisites.include?("clean"),
