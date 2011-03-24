@@ -304,7 +304,6 @@ module Rake
     # When needed? is called to find out if
     # the task should execute it's action,
     # the supplied block will be called.
-    # Brackets {} is not supported. Must use do/end.
     #
     #   #This task will not run
     #   task :task1 do
@@ -368,6 +367,15 @@ module Rake
     # Will overwrite any existing conditions for a prerequisite.
     #
     # override_needed will override these conditions.
+    #
+    # Example using conditions:
+    #   t = task :task1
+    #   t.override_needed { false }
+    #   task :task2
+    #   task :task3 => [:task1 => false, :task2 => true] do
+    #     puts "will run"
+    #   end
+    #
     def add_conditions(conditions)
       @conditions.merge!(conditions)
     end

@@ -1,10 +1,11 @@
 require 'rubygems'
 
-# Windows doesn't have syslog which log4r requires
+# 
 begin
   require 'syslog'
 rescue LoadError
-  # Fake Syslog enough for log4r to be silent
+  # Log4r requires syslog. Windows doesn't have syslog.
+  # This module is used to fake Syslog enough for log4r to be silent
   module Syslog
     module Constants
       LOG_EMERG = 0
@@ -30,7 +31,7 @@ module Rake
   RRAKE_LOGCTX = 'log_ctx'
   
   # Provides logging functionality
-  # The including class provides the log method which returns a Log4r::Logger
+  # The including class provides the _log_ method which must return a Log4r::Logger
   module Logging
   
     # Initialize Log4r with custom log levels and return the logger

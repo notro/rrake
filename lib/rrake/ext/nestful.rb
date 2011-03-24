@@ -1,6 +1,9 @@
 require 'nestful'
 
 module Nestful
+  # Nestful::Request#uri insist on adding an extension to the url.
+  # 
+  # This code removes that functionality.
   class Request
     def uri
       http_url = url.match(/^http/) ? url : "http://#{url}"
@@ -15,8 +18,7 @@ module Nestful
 end
 
 
-# Nestful::Request.uri insist on adding an extension to the url
-# That is the only place in nestful extension is used as of dec. 2010.
+# This is the only place in nestful that extension is used as of dec. 2010.
 #module Nestful
 #  module Formats
 #    class JsonFormat < Format

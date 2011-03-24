@@ -14,8 +14,6 @@ module Rake
 
     # Declare a basic task.
     #
-    # Brackets {} is not supported. Must use do/end.
-    #
     # Example:
     #   task :clobber => [:clean] do
     #     rm_rf "html"
