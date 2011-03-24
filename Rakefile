@@ -234,6 +234,7 @@ else
     s.add_dependency('nestful', '>= 0.0.6')
 
     s.add_development_dependency('rspec', '>= 2.3.0')
+    s.add_development_dependency('rspec-unit', '>= 1.1.0')
     s.add_development_dependency('flexmock', '>= 0.8.11')
     # rcov needs a compiler present on the system
     # session doesn't work on Windows because fork is missing =>  s.add_development_dependency('session', '>= 3.1.0')
