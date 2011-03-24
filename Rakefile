@@ -65,8 +65,10 @@ task :test => "test:units"
 module TestFiles
   EXT = FileList['spec/libext_*_spec.rb']
   NODEP = EXT + FileList['spec/libnodep_*_spec.rb']
-  UNIT = FileList['test/lib/*_test.rb'] + FileList['spec/lib_*_spec.rb'] + FileList['spec/rake_tests_reimplemented/lib/*_spec.rb']
-  FUNCTIONAL = FileList['test/functional/*_test.rb'] + FileList['spec/functional_*_spec.rb'] + FileList['spec/rake_tests_reimplemented/functional/*_spec.rb']
+  UNIT = FileList['test/lib/dsl_test.rb'] + FileList['test/lib/*_test.rb'].exclude('test/lib/dsl_test.rb') + 
+         FileList['spec/lib_*_spec.rb'] + FileList['spec/rake_tests_reimplemented/lib/*_spec.rb']
+  FUNCTIONAL = FileList['test/functional/*_test.rb'] + FileList['spec/functional_*_spec.rb'] + 
+               FileList['spec/rake_tests_reimplemented/functional/*_spec.rb']
   CONTRIB = FileList['test/contrib/test*.rb']
   TOP = FileList['test/*_test.rb']
   ALL = EXT + NODEP + UNIT + FUNCTIONAL + CONTRIB + TOP
