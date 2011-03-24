@@ -4,7 +4,19 @@ require 'rubygems'
 begin
   require 'syslog'
 rescue LoadError
-  require 'rrake/windows_syslog'
+  # Fake Syslog enough for log4r to be silent
+  module Syslog
+    module Constants
+      LOG_EMERG = 0
+      LOG_ALERT = 1
+      LOG_CRIT = 2
+      LOG_ERR = 3
+      LOG_WARNING = 4
+      LOG_NOTICE = 5
+      LOG_INFO = 6
+      LOG_DEBUG = 7
+    end
+  end
   $".unshift 'syslog'
 end
 
@@ -22,7 +34,10 @@ module Rake
   module Logging
   
     # Initialize Log4r with custom log levels and return the logger
-    def log_init(logger_name) # :nodoc:
+    #
+    # Levels: :DEBUG2, :DEBUG, :INFO, :WARN, :ERROR, :FATAL
+    #
+    def log_init(logger_name)
       current_verbose = $VERBOSE
       $VERBOSE = false
       Log4r::Configurator.custom_levels :DEBUG2, :DEBUG, :INFO, :WARN, :ERROR, :FATAL
@@ -33,7 +48,7 @@ module Rake
     end
     
     # Add log outputter with right format, and adjust logger level.
-    def log_add_output(out, level) # :nodoc:
+    def log_add_output(out, level)
       out.formatter = Log4r::PatternFormatter.new :pattern => "%d %6l %m"
       out.level = level
       if log.level > level
