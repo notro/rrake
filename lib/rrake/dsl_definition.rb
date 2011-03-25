@@ -105,6 +105,9 @@ module Rake
     #    sh %{cc -o #{t.name} #{t.source}}
     #  end
     #
+    # Note:
+    # If the rule is run on a remote task and a proc is used to calculate the name of the source file, the proc is run on the client.
+    #
     def rule(*args, &block)
       Rake::Task.create_rule(*args, &block)
     end
